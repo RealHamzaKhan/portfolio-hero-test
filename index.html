@@ -66,7 +66,10 @@ img{display:block;max-width:100%}
   transform:translate(-50%,-50%);
   transition:width .3s ease,height .3s ease,border-color .3s ease,background .3s ease;
 }
-.cursor-ring.is-hover{width:64px;height:64px;border-color:var(--orange);background:rgba(255,92,26,.08)}
+.cursor-ring.is-hover{width:68px;height:68px;border-color:var(--orange);background:rgba(255,92,26,.10)}
+.cursor-ring.is-press{width:26px;height:26px;border-color:var(--orange)}
+.magnetic{will-change:transform;display:inline-block}
+.main-nav a.magnetic,.social-row a.magnetic{display:inline-block}
 
 /* ---------- preloader ---------- */
 #preloader{position:fixed;inset:0;z-index:2000;pointer-events:none}
@@ -101,6 +104,44 @@ img{display:block;max-width:100%}
 .main-nav a::after{content:"";position:absolute;left:0;bottom:0;height:1px;width:0;background:var(--orange);transition:width .35s cubic-bezier(.22,1,.36,1)}
 .main-nav a:hover::after{width:100%}
 
+/* ---------- hero grid overlay ---------- */
+.hero-grid{
+  position:absolute;inset:0;z-index:1;pointer-events:none;
+  background-image:linear-gradient(rgba(236,231,223,.055) 1px,transparent 1px),linear-gradient(90deg,rgba(236,231,223,.055) 1px,transparent 1px);
+  background-size:76px 76px;
+  -webkit-mask-image:radial-gradient(90% 70% at 50% 38%,#000 30%,transparent 78%);
+  mask-image:radial-gradient(90% 70% at 50% 38%,#000 30%,transparent 78%);
+}
+.avail-pill{
+  display:inline-flex;align-items:center;gap:9px;
+  border:1px solid rgba(61,220,132,.4);border-radius:99px;padding:7px 14px;
+  font-size:.68rem;letter-spacing:.22em;text-transform:uppercase;color:var(--ink);
+  background:rgba(61,220,132,.07);margin-bottom:16px;
+}
+.avail-pill .pulse{width:8px;height:8px;border-radius:50%;background:#3ddc84;box-shadow:0 0 0 0 rgba(61,220,132,.55);animation:pulse 2.2s ease-out infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(61,220,132,.55)}70%{box-shadow:0 0 0 9px rgba(61,220,132,0)}100%{box-shadow:0 0 0 0 rgba(61,220,132,0)}}
+.scroll-hint{display:flex;align-items:center;gap:12px;margin-top:22px;font-size:.66rem;letter-spacing:.3em;text-transform:uppercase;color:var(--muted)}
+.scroll-hint .hint-line{width:1px;height:34px;background:linear-gradient(180deg,var(--orange),transparent);display:inline-block;animation:hintDrop 1.8s ease-in-out infinite;transform-origin:top}
+@keyframes hintDrop{0%{transform:scaleY(.3);opacity:.4}50%{transform:scaleY(1);opacity:1}100%{transform:scaleY(.3);opacity:.4}}
+.k-mask{display:inline-block;overflow:hidden;vertical-align:top;padding-bottom:.06em;margin-bottom:-.06em}
+.k-letter{display:inline-block;will-change:transform;text-shadow:0 0 34px rgba(255,92,26,.14)}
+.sec-num{flex:0 0 100%;display:flex;align-items:center;gap:14px;font-size:.7rem;letter-spacing:.32em;text-transform:uppercase;color:var(--orange)}
+.sec-num::after{content:"";height:1px;flex:1;background:var(--line)}
+/* ---------- manifesto ---------- */
+.manifesto{padding:clamp(70px,11vh,120px) clamp(20px,4vw,56px);border-top:1px solid var(--line);position:relative;overflow:hidden}
+.manifesto::before{content:"";position:absolute;inset:0;background:radial-gradient(60% 90% at 85% 10%,rgba(255,92,26,.09),transparent 60%);pointer-events:none}
+.manifesto-state{position:relative;font-family:var(--syne);font-weight:800;text-transform:uppercase;line-height:1.02;letter-spacing:-.01em;font-size:clamp(2rem,5.6vw,4.6rem);max-width:20ch}
+.manifesto-state .serif{color:var(--orange);font-size:1.04em}
+.manifesto-state .w-mask{display:inline-block;overflow:hidden;vertical-align:bottom;padding-bottom:.08em;margin-bottom:-.08em}
+.manifesto-state .w-inner{display:inline-block;will-change:transform}
+.manifesto-stats{position:relative;display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin-top:clamp(36px,6vh,56px);border:1px solid var(--line)}
+.mstat{padding:20px 22px;border-right:1px solid var(--line)}
+.mstat:last-child{border-right:none}
+.mstat b{display:block;font-family:var(--syne);font-weight:800;font-size:clamp(1.5rem,3vw,2.3rem);color:var(--ink)}
+.mstat b i{color:var(--orange);font-style:normal}
+.mstat span{font-size:.7rem;letter-spacing:.22em;text-transform:uppercase;color:var(--muted)}
+@media(max-width:700px){.manifesto-stats{grid-template-columns:1fr}.mstat{border-right:none;border-bottom:1px solid var(--line)}.mstat:last-child{border-bottom:none}}
+
 /* ---------- hero ---------- */
 .hero{
   position:relative;min-height:100vh;min-height:100svh;
@@ -126,7 +167,7 @@ img{display:block;max-width:100%}
   position:absolute;z-index:4;right:clamp(20px,5vw,72px);top:50%;
   width:124px;height:124px;margin-top:-62px;
 }
-.hero-badge svg{width:100%;height:100%;animation:spin 14s linear infinite}
+.hero-badge svg{width:100%;height:100%;overflow:visible;animation:spin 14s linear infinite}
 .hero-badge svg text{font-family:var(--grot);font-size:10.5px;letter-spacing:.32em;fill:var(--ink);text-transform:uppercase}
 .hero-badge .badge-dot{
   position:absolute;top:50%;left:50%;width:9px;height:9px;border-radius:50%;
@@ -185,9 +226,11 @@ img{display:block;max-width:100%}
   color:transparent;-webkit-text-stroke:1px rgba(236,231,223,.35);
   margin-bottom:14px;
 }
+.panel{transition:transform .55s cubic-bezier(.22,1,.36,1),border-color .4s ease,box-shadow .55s ease}
+.panel:hover{transform:translateY(-8px);border-color:rgba(255,92,26,.45);box-shadow:0 24px 60px rgba(0,0,0,.45),0 0 0 1px rgba(255,92,26,.12)}
 .panel-img{overflow:hidden;border-radius:4px;height:46vh;min-height:250px}
-.panel-img img{width:100%;height:100%;object-fit:cover;filter:grayscale(.2);transform:scale(1.001);transition:filter .5s ease,transform .8s cubic-bezier(.22,1,.36,1)}
-.panel:hover .panel-img img{filter:grayscale(0);transform:scale(1.045)}
+.panel-img img{width:100%;height:100%;object-fit:cover;filter:grayscale(.2);transition:filter .5s ease}
+.panel:hover .panel-img img{filter:grayscale(0)}
 .panel-meta{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:20px;flex-wrap:wrap}
 .panel-title{font-family:var(--syne);font-weight:700;font-size:clamp(1.5rem,2.4vw,2.2rem);line-height:1.05}
 .chip{display:inline-flex;align-items:center;gap:8px;font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);border:1px solid var(--line);border-radius:99px;padding:6px 13px;white-space:nowrap}
@@ -207,6 +250,7 @@ img{display:block;max-width:100%}
 /* ---------- experience ---------- */
 .exp-grid{display:grid;grid-template-columns:minmax(280px,1fr) 1.5fr;gap:clamp(30px,5vw,90px);align-items:start}
 .exp-sticky{position:sticky;top:110px}
+.exp-sticky .sec-title{font-size:clamp(2.1rem,4.4vw,4.2rem)}
 .exp-row{border-top:1px solid var(--line);padding:30px 0 34px;position:relative}
 .exp-row:last-child{border-bottom:1px solid var(--line)}
 .exp-row .line-grow{position:absolute;top:-1px;left:0;height:1px;width:100%;background:var(--orange);transform:scaleX(0);transform-origin:left}
@@ -277,9 +321,13 @@ img{display:block;max-width:100%}
 
 /* ---------- responsive ---------- */
 @media(max-width:1099px){
-  .hero-badge{display:none}
+  .hero-badge{width:94px;height:94px;margin-top:-47px;right:22px}
+  .hero-badge svg text{font-size:12.5px}
 }
 @media(max-width:899px){
+  .hero-badge{top:80px;right:16px;width:76px;height:76px;margin-top:0}
+  .hero-main{padding-top:172px}
+  .manifesto-state{max-width:100%}
   .h-track{flex-direction:column;padding-bottom:10px}
   .panel{flex:none;width:100%}
   .panel-img{height:34vh}
@@ -292,9 +340,12 @@ img{display:block;max-width:100%}
   .main-nav a:not(:last-child){display:none}
 }
 @media(prefers-reduced-motion:reduce){
-  .marquee-track{animation-duration:120s}
-  .hero-badge svg{animation-duration:60s}
+  .marquee-track{animation:none}
+  .hero-badge svg{animation:none}
   .grain{animation:none}
+  .avail-pill .pulse{animation:none}
+  .scroll-hint .hint-line{animation:none}
+  .panel,.panel-img img{transition:none}
 }
 </style>
 </head>
@@ -331,12 +382,13 @@ img{display:block;max-width:100%}
 <!-- ============ HERO ============ -->
 <section class="hero" id="top">
   <canvas id="gl" aria-hidden="true"></canvas>
+  <div class="hero-grid" aria-hidden="true"></div>
   <div class="hero-shade" aria-hidden="true"></div>
 
   <div class="hero-main">
     <h1 class="hero-title" aria-label="Hamza Raziq Khan">
       <span class="t-outline" id="titleOutline" aria-hidden="true">HAMZA</span>
-      <span class="line-mask"><span class="line-inner t-hamza" id="titleLine1">HAMZA</span></span>
+      <span class="line-mask"><span class="line-inner t-hamza" id="titleLine1"><span class="k-mask"><span class="k-letter">H</span></span><span class="k-mask"><span class="k-letter">A</span></span><span class="k-mask"><span class="k-letter">M</span></span><span class="k-mask"><span class="k-letter">Z</span></span><span class="k-mask"><span class="k-letter">A</span></span></span></span>
       <span class="line-mask"><span class="line-inner t-line2" id="titleLine2"><span>RAZIQ</span><span class="khan">Khan</span></span></span>
     </h1>
   </div>
@@ -350,9 +402,11 @@ img{display:block;max-width:100%}
   </div>
 
   <div class="hero-bottom" id="heroBottom">
+    <span class="avail-pill"><span class="pulse" aria-hidden="true"></span>Open to AI engineering roles</span>
     <p class="hero-role">Engineer by day. Teacher by calling.</p>
     <p class="hero-one">I build AI systems that work in the real world: synthetic data pipelines, document intelligence, LLM agents and RAG.</p>
     <p class="hero-loc">Peshawar, Pakistan</p>
+    <p class="scroll-hint" aria-hidden="true"><span class="hint-line"></span>Scroll to explore</p>
   </div>
 
   <div class="marquee hero-marquee" aria-hidden="true">
@@ -377,11 +431,23 @@ img{display:block;max-width:100%}
   </div>
 </section>
 
+<!-- ============ MANIFESTO ============ -->
+<section class="manifesto" id="manifesto">
+  <p class="sec-num" style="margin-bottom:26px">00 / Manifesto</p>
+  <h2 class="manifesto-state" data-split>I build <span class="serif">production AI,</span> teach it in real classrooms, and research what comes <span class="serif">next.</span></h2>
+  <div class="manifesto-stats">
+    <div class="mstat"><b>130<i>+</i></b><span>Students taught per semester</span></div>
+    <div class="mstat"><b>AI Engineer <i>2</i></b><span>At xFlow Research, 2024 to 2026</span></div>
+    <div class="mstat"><b>6</b><span>Projects, each with its real status</span></div>
+  </div>
+</section>
+
 <!-- ============ WORK ============ -->
 <section class="section" id="work">
   <div class="sec-head">
+    <p class="sec-num">01 / Work</p>
     <h2 class="sec-title" data-split>Selected <span class="serif">work</span><span class="sec-count">(06)</span></h2>
-    <p class="sec-note">2023 — 2026</p>
+    <p class="sec-note">2023 to 2026</p>
   </div>
 
   <div class="h-wrap" id="hWrap">
@@ -389,7 +455,7 @@ img{display:block;max-width:100%}
 
       <article class="panel">
         <div class="panel-idx">01</div>
-        <div class="panel-img"><img src="img/snapbooks.jpg" alt="SnapBooks, abstract 3D render"></div>
+        <div class="panel-img"><img src="img/snapbooks.webp" width="1280" height="853" decoding="async" fetchpriority="high" alt="SnapBooks, abstract 3D render"></div>
         <div class="panel-meta">
           <h3 class="panel-title">SnapBooks</h3>
           <span class="chip"><span class="dot dot-live"></span>Live</span>
@@ -401,7 +467,7 @@ img{display:block;max-width:100%}
 
       <article class="panel">
         <div class="panel-idx">02</div>
-        <div class="panel-img"><img src="img/jarvis.jpg" alt="Jarvis, abstract 3D render"></div>
+        <div class="panel-img"><img src="img/jarvis.webp" width="1280" height="853" decoding="async" loading="lazy" alt="Jarvis, abstract 3D render"></div>
         <div class="panel-meta">
           <h3 class="panel-title">Jarvis</h3>
           <span class="chip"><span class="dot dot-dev"></span>In Development</span>
@@ -412,7 +478,7 @@ img{display:block;max-width:100%}
 
       <article class="panel">
         <div class="panel-idx">03</div>
-        <div class="panel-img"><img src="img/pashto.jpg" alt="Pashto Phone Agent, abstract 3D render"></div>
+        <div class="panel-img"><img src="img/pashto.webp" width="1280" height="853" decoding="async" loading="lazy" alt="Pashto Phone Agent, abstract 3D render"></div>
         <div class="panel-meta">
           <h3 class="panel-title">Pashto Phone Agent</h3>
           <span class="chip"><span class="dot dot-res"></span>Research</span>
@@ -423,7 +489,7 @@ img{display:block;max-width:100%}
 
       <article class="panel">
         <div class="panel-idx">04</div>
-        <div class="panel-img"><img src="img/urdu.jpg" alt="Urdu GUI Grounder, abstract 3D render"></div>
+        <div class="panel-img"><img src="img/urdu.webp" width="1280" height="853" decoding="async" loading="lazy" alt="Urdu GUI Grounder, abstract 3D render"></div>
         <div class="panel-meta">
           <h3 class="panel-title">Urdu GUI Grounder</h3>
           <span class="chip"><span class="dot dot-res"></span>Research</span>
@@ -434,7 +500,7 @@ img{display:block;max-width:100%}
 
       <article class="panel">
         <div class="panel-idx">05</div>
-        <div class="panel-img"><img src="img/forge.jpg" alt="Forge, abstract 3D render"></div>
+        <div class="panel-img"><img src="img/forge.webp" width="1280" height="853" decoding="async" loading="lazy" alt="Forge, abstract 3D render"></div>
         <div class="panel-meta">
           <h3 class="panel-title">Forge</h3>
           <span class="chip"><span class="dot dot-live"></span>Live</span>
@@ -446,7 +512,7 @@ img{display:block;max-width:100%}
 
       <article class="panel">
         <div class="panel-idx">06</div>
-        <div class="panel-img"><img src="img/dailycommit.jpg" alt="The Daily Commit, abstract 3D render"></div>
+        <div class="panel-img"><img src="img/dailycommit.webp" width="1280" height="853" decoding="async" loading="lazy" alt="The Daily Commit, abstract 3D render"></div>
         <div class="panel-meta">
           <h3 class="panel-title">The Daily Commit</h3>
           <span class="chip"><span class="dot dot-live"></span>Live</span>
@@ -466,6 +532,7 @@ img{display:block;max-width:100%}
 <section class="section" id="experience">
   <div class="exp-grid">
     <div class="exp-sticky">
+      <p class="sec-num">02 / Experience</p>
       <h2 class="sec-title" data-split>Experience <span class="serif">(three chapters)</span></h2>
     </div>
     <div class="exp-rows">
@@ -478,14 +545,14 @@ img{display:block;max-width:100%}
       </div>
       <div class="exp-row">
         <span class="line-grow" aria-hidden="true"></span>
-        <p class="exp-period">Jan 2024 — Oct 2026</p>
+        <p class="exp-period">Jan 2024 to Oct 2026</p>
         <h3 class="exp-role">AI Engineer 2</h3>
         <p class="exp-place">xFlow Research</p>
         <p class="exp-desc">Synthetic data pipelines, document intelligence with hybrid OCR and VLM, KYC systems, LLM agents and RAG, shipped with FastAPI and Docker.</p>
       </div>
       <div class="exp-row">
         <span class="line-grow" aria-hidden="true"></span>
-        <p class="exp-period">2023 — 2024</p>
+        <p class="exp-period">2023 to 2024</p>
         <h3 class="exp-role">Freelance AI / Mobile Developer</h3>
         <p class="exp-place">Independent</p>
         <p class="exp-desc">End to end client work: ML prototypes that proved ideas fast, and cross-platform mobile apps shipped to real users.</p>
@@ -497,6 +564,7 @@ img{display:block;max-width:100%}
 <!-- ============ SKILLS ============ -->
 <section class="section" id="skills">
   <div class="sec-head">
+    <p class="sec-num">03 / Skills</p>
     <h2 class="sec-title" data-split>The <span class="serif">toolkit</span></h2>
     <p class="sec-note">Used on real work</p>
   </div>
@@ -599,17 +667,18 @@ img{display:block;max-width:100%}
 <!-- ============ HONORS ============ -->
 <section class="section" id="honors">
   <div class="sec-head">
+    <p class="sec-num">04 / Honors</p>
     <h2 class="sec-title" data-split>Roots <span class="serif">&amp;</span> honors</h2>
     <p class="sec-note">Education · Awards</p>
   </div>
   <div class="honors-list">
     <div class="honor-row">
-      <span class="honor-name">MS Computer Science <span class="serif">— FAST NUCES</span></span>
+      <span class="honor-name">MS Computer Science <span class="serif">, FAST NUCES</span></span>
       <span class="honor-detail">In progress, expected 2028</span>
     </div>
     <div class="honor-row">
-      <span class="honor-name">BS Computer Science <span class="serif">— FAST NUCES</span></span>
-      <span class="honor-detail">2020 — 2024 · CGPA 3.3 · Dean's List ×2</span>
+      <span class="honor-name">BS Computer Science <span class="serif">, FAST NUCES</span></span>
+      <span class="honor-detail">2020 to 2024 · CGPA 3.3 · Dean's List ×2</span>
     </div>
     <div class="honor-row">
       <span class="honor-name">ICPC Regionals</span>
@@ -628,7 +697,8 @@ img{display:block;max-width:100%}
 
 <!-- ============ CONTACT ============ -->
 <section class="section" id="contact">
-  <h2 class="contact-title">Let's <span class="serif">build</span></h2>
+  <p class="sec-num" style="margin-bottom:22px">05 / Contact</p>
+  <h2 class="contact-title" data-split>Let's <span class="serif">build</span></h2>
   <p class="contact-line">A production AI system, a research collaboration, a guest lecture, or a class that needs a teacher who ships: my inbox is open.</p>
   <div class="email-row">
     <a class="email-link" href="mailto:hamzaraziqkhan@gmail.com">hamzaraziqkhan@gmail.com</a>
@@ -711,7 +781,8 @@ if (hasST && !reduced) {
 var introPlayed = false;
 function setIntroStates(){
   if (!hasGsap || reduced) return;
-  gsap.set("#titleLine1, #titleLine2", { yPercent: 110 });
+  gsap.set("#titleLine2", { yPercent: 110 });
+  gsap.set("#titleLine1 .k-letter", { yPercent: 118, rotate: 6 });
   gsap.set("#titleOutline", { x: -40, opacity: 0 });
   gsap.set("#heroBadge", { scale: 0.8, opacity: 0 });
   gsap.set("#heroBottom", { y: 26, opacity: 0 });
@@ -724,7 +795,7 @@ function playIntro(){
   var tl = gsap.timeline({ defaults: { ease: "power4.out" } });
   tl.to(".site-head", { y: 0, opacity: 1, duration: 0.8 }, 0)
     .to("#titleOutline", { x: 0, opacity: 1, duration: 1.3, ease: "power3.out" }, 0)
-    .to("#titleLine1", { yPercent: 0, duration: 1.15 }, 0.05)
+    .to("#titleLine1 .k-letter", { yPercent: 0, rotate: 0, duration: 1.15, stagger: 0.07 }, 0.05)
     .to("#titleLine2", { yPercent: 0, duration: 1.15 }, 0.18)
     .to("#heroBadge", { scale: 1, opacity: 1, duration: 0.9, ease: "back.out(1.6)" }, 0.45)
     .to("#heroBottom", { y: 0, opacity: 1, duration: 0.9 }, 0.55)
@@ -819,6 +890,13 @@ if (hasST && !reduced && typeof gsap.matchMedia === "function") {
         onUpdate: function(self){ if (bar) bar.style.transform = "scaleX(" + self.progress + ")"; }
       }
     });
+    document.querySelectorAll(".panel").forEach(function(panel){
+      var img = panel.querySelector(".panel-img img");
+      if (img) gsap.fromTo(img, { xPercent: -4, scale: 1.15 }, { xPercent: 4, scale: 1.15, ease: "none",
+        scrollTrigger: { trigger: panel, containerAnimation: tween, start: "left right", end: "right left", scrub: true } });
+      gsap.fromTo(panel, { opacity: 0.35 }, { opacity: 1, ease: "none",
+        scrollTrigger: { trigger: panel, containerAnimation: tween, start: "left 95%", end: "left 55%", scrub: true } });
+    });
     return function(){ gsap.set(track, { x: 0 }); if (tween.scrollTrigger) tween.scrollTrigger.kill(); tween.kill(); };
   });
   mm.add("(max-width: 899px)", function(){
@@ -847,8 +925,8 @@ if (hasST && !reduced) {
     start: "top 92%", once: true,
     onEnter: function(b){ gsap.to(b, { opacity: 1, y: 0, duration: 0.8, ease: "power3.out", stagger: 0.08 }); }
   });
-  gsap.set(".cluster, .contact-line, .email-row, .social-row", { opacity: 0, y: 24 });
-  ScrollTrigger.batch(".cluster, .contact-line, .email-row, .social-row", {
+  gsap.set(".cluster, .contact-line, .email-row, .social-row, .mstat", { opacity: 0, y: 24 });
+  ScrollTrigger.batch(".cluster, .contact-line, .email-row, .social-row, .mstat", {
     start: "top 92%", once: true,
     onEnter: function(b){ gsap.to(b, { opacity: 1, y: 0, duration: 0.85, ease: "power3.out", stagger: 0.08 }); }
   });
@@ -878,6 +956,8 @@ if (window.matchMedia("(pointer: fine)").matches) {
   document.addEventListener("mouseover", function(e){
     if (e.target.closest && e.target.closest("a, button, .honor-row, .panel")) ring.classList.add("is-hover");
   });
+  document.addEventListener("mousedown", function(){ if (ring) ring.classList.add("is-press"); });
+  document.addEventListener("mouseup", function(){ if (ring) ring.classList.remove("is-press"); });
   document.addEventListener("mouseout", function(e){
     if (e.target.closest && e.target.closest("a, button, .honor-row, .panel")) ring.classList.remove("is-hover");
   });
@@ -971,7 +1051,7 @@ if (copyBtn) copyBtn.addEventListener("click", function(){
     "  vec2 p = vec2(uv.x * aspect, uv.y);",
     "  vec2 m = vec2(uMouse.x * aspect, uMouse.y);",
     "  float md = distance(p, m);",
-    "  float glow = exp(-md * 2.4);",
+    "  float glow = exp(-md * 2.0);",
     "  float t = uTime * 0.045;",
     "  vec2 q = vec2(fbm(p * 1.6 + vec2(t, -t * 0.7)), fbm(p * 1.6 + vec2(5.2, 1.3) - vec2(t * 0.6, t)));",
     "  vec2 bend = (m - p) * glow * 0.55;",
@@ -986,7 +1066,7 @@ if (copyBtn) copyBtn.addEventListener("click", function(){
     "  col = mix(col, violet, smoothstep(0.25, 0.78, f) * 0.85);",
     "  col = mix(col, blue, smoothstep(0.45, 0.92, q.y) * 0.42);",
     "  col = mix(col, ember, smoothstep(0.58, 0.98, f * f + glow * 0.30) * 0.72);",
-    "  col += ember * glow * 0.26;",
+    "  col += ember * glow * 0.34;",
     "  float vig = smoothstep(1.30, 0.35, distance(uv, vec2(0.5, 0.45)));",
     "  col *= mix(0.70, 1.05, vig);",
     "  gl_FragColor = vec4(col, 1.0);",
@@ -1053,6 +1133,42 @@ if (copyBtn) copyBtn.addEventListener("click", function(){
     renderFrame();
   })();
 })();
+
+/* ================= Magnetic hover + hero depth ================= */
+if (window.matchMedia("(pointer: fine)").matches && !reduced && hasGsap) {
+  document.querySelectorAll(".main-nav a, .logo, .panel-link, .email-link, .copy-btn, .social-row a, .to-top").forEach(function(el){
+    el.classList.add("magnetic");
+    el.addEventListener("mousemove", function(e){
+      var r = el.getBoundingClientRect();
+      gsap.to(el, { x: (e.clientX - r.left - r.width/2) * 0.28, y: (e.clientY - r.top - r.height/2) * 0.34, duration: 0.4, ease: "power3.out" });
+    });
+    el.addEventListener("mouseleave", function(){
+      gsap.to(el, { x: 0, y: 0, duration: 0.7, ease: "elastic.out(1, 0.4)" });
+    });
+  });
+  var heroEl = document.querySelector(".hero");
+  if (heroEl) heroEl.addEventListener("pointermove", function(e){
+    var nx = e.clientX / window.innerWidth - 0.5, ny = e.clientY / window.innerHeight - 0.5;
+    gsap.to("#titleOutline", { x: nx * 26, y: ny * 16, duration: 0.9, ease: "power2.out", overwrite: "auto" });
+    gsap.to("#titleLine1", { x: nx * -10, duration: 0.9, ease: "power2.out", overwrite: "auto" });
+    gsap.to("#heroBadge", { x: nx * 14, y: ny * 12, duration: 0.9, ease: "power2.out", overwrite: "auto" });
+  }, { passive: true });
+}
+
+/* ================= Panel image parallax ================= */
+if (hasST && !reduced && typeof gsap.matchMedia === "function") {
+  var mm2 = gsap.matchMedia();
+  mm2.add("(max-width: 899px)", function(){
+    document.querySelectorAll(".panel").forEach(function(panel){
+      var img = panel.querySelector(".panel-img img");
+      if (!img) return;
+      gsap.fromTo(img, { yPercent: -4, scale: 1.15 }, { yPercent: 4, scale: 1.15, ease: "none",
+        scrollTrigger: { trigger: panel, start: "top bottom", end: "bottom top", scrub: true } });
+      gsap.fromTo(panel, { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.9, ease: "power3.out",
+        scrollTrigger: { trigger: panel, start: "top 92%", once: true } });
+    });
+  });
+}
 
 /* refresh triggers once images/fonts settle */
 window.addEventListener("load", function(){
