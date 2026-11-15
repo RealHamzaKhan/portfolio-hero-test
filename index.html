@@ -264,6 +264,95 @@ h2.out .org{color:var(--org)}
 }
 .foot .org{color:var(--org)}
 
+/* ---------- exploration: signals, map, fact card ---------- */
+.signal{
+  position:absolute;z-index:6;width:44px;height:44px;border:none;background:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;padding:0;
+}
+.sig-dot{
+  width:12px;height:12px;border-radius:50%;background:var(--org);
+  box-shadow:0 0 14px var(--org), 0 0 34px rgba(255,92,26,.45);
+  animation:sigBreath 2.6s ease-in-out infinite;pointer-events:none;
+}
+.sig-ring{
+  position:absolute;inset:5px;border:1px solid rgba(255,92,26,.65);border-radius:50%;
+  animation:sigPulse 2.6s ease-out infinite;pointer-events:none;
+}
+@keyframes sigBreath{0%,100%{transform:scale(1)}50%{transform:scale(1.25)}}
+@keyframes sigPulse{0%{transform:scale(.55);opacity:1}80%{transform:scale(1.15);opacity:0}100%{transform:scale(1.15);opacity:0}}
+.sig-label{
+  position:absolute;left:50%;top:-14px;transform:translateX(-50%);
+  font-family:var(--mono);font-size:9px;letter-spacing:.28em;color:var(--ink);
+  opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap;
+  text-shadow:0 1px 8px rgba(0,0,0,.9);text-transform:uppercase;
+}
+.signal:hover .sig-label,.signal:focus-visible .sig-label{opacity:1}
+.signal.found .sig-dot{background:#fff;box-shadow:0 0 12px rgba(255,255,255,.9);animation:none}
+.signal.found .sig-ring{border-color:rgba(255,255,255,.55);animation:none;transform:scale(1)}
+.sig-z1{top:15%;right:6%}
+.sig-z2{top:24%;right:4.5%}
+.sig-z3{bottom:13%;left:3.5%}
+.sig-z4{top:112px;right:3.5%}
+.sig-z5{top:21%;right:7%}
+
+#factCard{
+  position:fixed;right:clamp(16px,3vw,40px);bottom:96px;z-index:60;width:min(340px,calc(100vw - 32px));
+  background:rgba(8,9,15,.92);border:1px solid rgba(255,92,26,.5);border-radius:12px;
+  padding:18px 20px 16px;backdrop-filter:blur(8px);
+  box-shadow:0 18px 50px rgba(0,0,0,.55), 0 0 30px rgba(255,92,26,.12);
+}
+#factCard[hidden]{display:none}
+.fc-head{display:flex;justify-content:space-between;align-items:center;gap:12px;
+  font-family:var(--mono);font-size:10px;letter-spacing:.24em;color:var(--org);text-transform:uppercase}
+#fcClose{background:none;border:1px solid var(--line);border-radius:50%;width:26px;height:26px;
+  color:var(--ink);font-size:15px;line-height:1;cursor:pointer;flex:none;padding:0}
+#fcClose:hover{border-color:var(--org);color:var(--org)}
+#fcText{margin-top:12px;font-size:16.5px;line-height:1.55;color:var(--ink)}
+.fc-count{margin-top:12px;font-family:var(--mono);font-size:9.5px;letter-spacing:.24em;color:var(--mut);text-transform:uppercase}
+
+#jmap{
+  position:fixed;right:16px;top:50%;transform:translateY(-50%);z-index:50;
+  display:flex;flex-direction:column;align-items:center;gap:20px;
+}
+#jmap::before{content:"";position:absolute;top:8px;bottom:8px;left:50%;width:1px;background:var(--line);z-index:-1}
+.jdot{
+  width:26px;height:26px;border:none;background:none;cursor:pointer;position:relative;padding:0;
+  display:flex;align-items:center;justify-content:center;
+}
+.jdot::after{
+  content:"";width:9px;height:9px;border-radius:50%;
+  border:1px solid rgba(244,239,232,.5);background:transparent;transition:all .3s;
+}
+.jdot.done::after{background:var(--org);border-color:var(--org);box-shadow:0 0 8px rgba(255,92,26,.5)}
+.jdot.now::after{background:var(--org);border-color:#fff;box-shadow:0 0 0 4px rgba(255,92,26,.25), 0 0 12px var(--org)}
+.jdot .jlab{
+  position:absolute;right:30px;top:50%;transform:translateY(-50%);
+  font-family:var(--mono);font-size:9px;letter-spacing:.22em;color:var(--mut);
+  opacity:0;transition:opacity .25s;white-space:nowrap;text-transform:uppercase;pointer-events:none;
+}
+.jdot:hover .jlab,.jdot.now .jlab{opacity:1}
+.jdot.now .jlab{color:var(--org)}
+
+@keyframes flyL{from{opacity:0;transform:translateX(-150px) rotateY(-22deg)}to{opacity:1;transform:translateX(0) rotateY(0)}}
+@keyframes flyR{from{opacity:0;transform:translateX(150px) rotateY(22deg)}to{opacity:1;transform:translateX(0) rotateY(0)}}
+.flyL{animation:flyL .95s cubic-bezier(.2,.7,.2,1) both}
+.flyR{animation:flyR .95s cubic-bezier(.2,.7,.2,1) both}
+.socials a.tx-prep{transition:opacity .35s ease, transform .35s ease, border-color .25s, color .25s}
+
+@media (max-width:700px){
+  #jmap{display:none}
+  .sig-z1{right:4%}
+  .sig-z2{right:3%}
+  .sig-z3{left:2%}
+  .sig-z4{right:2.5%}
+  .sig-z5{right:4%}
+  #factCard{bottom:86px}
+}
+@media (prefers-reduced-motion: reduce){
+  .sig-dot,.sig-ring{animation:none !important}
+  .flyL,.flyR{animation:none !important}
+}
+
 /* ---------- mobile ---------- */
 @media (max-width:900px){
   .skill-grid{grid-template-columns:repeat(2,1fr)}
@@ -322,6 +411,22 @@ h2.out .org{color:var(--org)}
   <div class="row"><span class="k">Zone</span><span><b id="roZone">00</b> / 05</span></div>
   <div class="row"><span class="k">Cam</span><span id="roCam">DEPTH 000.0</span></div>
   <div class="row"><span class="k">Status</span><span id="roStatus">WORLD LIVE</span></div>
+  <div class="row"><span class="k">Signals</span><span><b id="roSignals">0</b> / 5</span></div>
+</div>
+
+<nav id="jmap" aria-label="Journey map">
+  <button type="button" class="jdot" data-zone="0" aria-label="Go to Entrance"><span class="jlab">00 · Entrance</span></button>
+  <button type="button" class="jdot" data-zone="1" aria-label="Go to The Engineer"><span class="jlab">01 · Engineer</span></button>
+  <button type="button" class="jdot" data-zone="2" aria-label="Go to Experience"><span class="jlab">02 · Experience</span></button>
+  <button type="button" class="jdot" data-zone="3" aria-label="Go to Skills"><span class="jlab">03 · Skills</span></button>
+  <button type="button" class="jdot" data-zone="4" aria-label="Go to Projects"><span class="jlab">04 · Projects</span></button>
+  <button type="button" class="jdot" data-zone="5" aria-label="Go to Output"><span class="jlab">05 · Output</span></button>
+</nav>
+
+<div id="factCard" hidden role="dialog" aria-label="Signal fact">
+  <div class="fc-head"><span id="fcTitle">Signal · Decoded</span><button type="button" id="fcClose" aria-label="Close fact">×</button></div>
+  <p id="fcText"></p>
+  <div class="fc-count" id="fcCount">Signals 0 / 5</div>
 </div>
 
 <main>
@@ -349,6 +454,7 @@ h2.out .org{color:var(--org)}
   <!-- ZONE 1 : THE ENGINEER -->
   <section class="zone" id="z1" data-zone="1" data-name="THE ENGINEER">
     <div class="zone-inner">
+      <button type="button" class="signal sig-z1" data-fact="0" aria-label="Hidden signal"><span class="sig-ring"></span><span class="sig-dot"></span><span class="sig-label">Signal</span></button>
       <div class="label">Zone 01 <span class="dim">/ The Engineer</span></div>
       <h2 class="statement compact">Machines that learn.<br><span class="org">Systems that ship.</span><br><span class="thin">Students who build.</span></h2>
       <p class="lede">I spent two years building production AI inside a research company, and I now teach the next builders while finishing my MS. <strong>Research taste, product discipline.</strong></p>
@@ -375,6 +481,7 @@ h2.out .org{color:var(--org)}
   <!-- ZONE 2 : EXPERIENCE -->
   <section class="zone" id="z2" data-zone="2" data-name="EXPERIENCE">
     <div class="zone-inner">
+      <button type="button" class="signal sig-z2" data-fact="1" aria-label="Hidden signal"><span class="sig-ring"></span><span class="sig-dot"></span><span class="sig-label">Signal</span></button>
       <div class="label">Zone 02 <span class="dim">/ Experience</span></div>
       <h2 class="statement">Three stops.<br><span class="org">One direction.</span></h2>
       <div class="rows">
@@ -400,6 +507,7 @@ h2.out .org{color:var(--org)}
   <!-- ZONE 3 : SKILLS -->
   <section class="zone" id="z3" data-zone="3" data-name="SKILLS">
     <div class="zone-inner">
+      <button type="button" class="signal sig-z3" data-fact="2" aria-label="Hidden signal"><span class="sig-ring"></span><span class="sig-dot"></span><span class="sig-label">Signal</span></button>
       <div class="label">Zone 03 <span class="dim">/ Skills</span></div>
       <h2 class="statement">The toolkit, <span class="org">in orbit.</span></h2>
       <div class="skill-grid">
@@ -416,6 +524,7 @@ h2.out .org{color:var(--org)}
   <!-- ZONE 4 : PROJECTS -->
   <section class="zone" id="z4" data-zone="4" data-name="PROJECTS">
     <div class="zone-inner">
+      <button type="button" class="signal sig-z4" data-fact="3" aria-label="Hidden signal"><span class="sig-ring"></span><span class="sig-dot"></span><span class="sig-label">Signal</span></button>
      <div class="pan-wrap" id="projPan">
       <div class="label">Zone 04 <span class="dim">/ Projects Gallery</span></div>
       <h2 class="statement">Work the camera<br><span class="org">flies past.</span></h2>
@@ -476,6 +585,7 @@ h2.out .org{color:var(--org)}
   <!-- ZONE 5 : OUTPUT -->
   <section class="zone" id="z5" data-zone="5" data-name="OUTPUT">
     <div class="zone-inner">
+      <button type="button" class="signal sig-z5" data-fact="4" aria-label="Hidden signal"><span class="sig-ring"></span><span class="sig-dot"></span><span class="sig-label">Signal</span></button>
       <div class="contact-wrap">
         <div class="label">Zone 05 <span class="dim">/ Output · You reached the core</span></div>
         <h2 class="out">Let us<br><span class="org">build</span></h2>
@@ -522,6 +632,13 @@ h2.out .org{color:var(--org)}
   var roStatus = document.getElementById("roStatus");
   var NAMES = zones.map(function(z){ return z.getAttribute("data-name"); });
 
+  /* exploration state, shared between scroll logic and the world */
+  var lastZone = -1, maxReached = 0;
+  var prevScrollY = window.scrollY || 0, prevT = performance.now();
+  var scrollVelSmooth = 0;   // px per second, smoothed
+  var fxTrigger = null;      // set by the 3D world when it inits
+  var factOpen = false, factScrollY = 0;
+
   var scrollY = window.scrollY || 0;
   var globalT = 0;           // float: zone index + local progress
   var docProgress = 0;
@@ -532,6 +649,12 @@ h2.out .org{color:var(--org)}
 
   function measure(){
     scrollY = window.scrollY || window.pageYOffset || 0;
+    var nowT = performance.now();
+    var dtS = Math.max(1, nowT - prevT) / 1000;
+    var instV = (scrollY - prevScrollY) / dtS;
+    if (Math.abs(instV) < 5000) scrollVelSmooth += (instV - scrollVelSmooth) * 0.45;
+    prevScrollY = scrollY; prevT = nowT;
+    if (factOpen && Math.abs(scrollY - factScrollY) > 40) closeFact();
     var vh = window.innerHeight;
     var maxScroll = Math.max(1, document.documentElement.scrollHeight - vh);
     docProgress = clamp(scrollY / maxScroll, 0, 1);
@@ -568,6 +691,11 @@ h2.out .org{color:var(--org)}
     zoneNameEl.innerHTML = "ZONE <b>0" + zi + "</b> · " + NAMES[zi];
     roZone.textContent = "0" + zi;
     progressEl.style.width = (docProgress * 100).toFixed(2) + "%";
+    if (zi !== lastZone){
+      lastZone = zi;
+      if (zi > maxReached) maxReached = zi;
+      onZoneChange(zi);
+    }
   }
   window.addEventListener("scroll", measure, { passive:true });
   window.addEventListener("resize", measure);
@@ -661,6 +789,8 @@ h2.out .org{color:var(--org)}
         new THREE.MeshBasicMaterial({ color:EMBER, transparent:true, opacity:0.5 })
       );
       gate.add(outer); gate.add(inner);
+      gate.userData.outer = outer;
+      gate.userData.inner = inner;
       gate.position.set(0, 2.2, z);
       scene.add(gate); gates.push(gate);
     });
@@ -668,6 +798,7 @@ h2.out .org{color:var(--org)}
     /* ---- pillars ---- */
     var pillarMat = new THREE.MeshStandardMaterial({ color:DARK, roughness:0.85, metalness:0.3 });
     var pillarEdge = new THREE.MeshBasicMaterial({ color:ORANGE, transparent:true, opacity:0.75 });
+    var caps = [];
     var rng = 7;
     function rand(){ rng = (rng * 16807) % 2147483647; return rng / 2147483647; }
     for (var pz = -8; pz > -155; pz -= 11){
@@ -676,9 +807,11 @@ h2.out .org{color:var(--org)}
         var pillar = new THREE.Mesh(new THREE.BoxGeometry(1.4, h, 1.4), pillarMat);
         pillar.position.set(side * (9.5 + rand() * 4.5), h/2 - 2.5, pz - rand() * 5);
         scene.add(pillar);
-        var cap = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.1, 1.5), pillarEdge);
+        var capMat = pillarEdge.clone();
+        var cap = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.1, 1.5), capMat);
         cap.position.set(pillar.position.x, h - 2.5 + 0.05, pillar.position.z);
         scene.add(cap);
+        caps.push(capMat);
       });
     }
 
@@ -698,6 +831,16 @@ h2.out .org{color:var(--org)}
       m.userData.baseY = m.position.y;
       scene.add(m); floaters.push(m);
     }
+    /* skills-zone floaters get an aligned formation for the zone 3 arrival event */
+    var skillFloaters = floaters.filter(function(m){ return m.position.z < -66 && m.position.z > -104; });
+    skillFloaters.forEach(function(m, k){
+      m.userData.origPos = m.position.clone();
+      m.userData.alignPos = new THREE.Vector3(
+        (k % 2 === 0 ? -7.6 : 7.6),
+        1.6 + (k % 3) * 2.3,
+        -74 - Math.floor(k / 2) * 6
+      );
+    });
 
     /* ---- floor grid ---- */
     var grid = new THREE.GridHelper(420, 105, 0x3a2415, 0x12141e);
@@ -753,13 +896,30 @@ h2.out .org{color:var(--org)}
 
     function moveStream(pts, dt){
       var arr = pts.geometry.attributes.position.array;
-      var sp = pts.userData.speed * dt;
+      var sp = pts.userData.speed * dt * (1 + Math.min(2.6, Math.abs(scrollVelSmooth) * 0.0016));
       for (var i = 2; i < arr.length; i += 3){
         arr[i] += sp;
         if (arr[i] > 15) arr[i] = -168;
       }
       pts.geometry.attributes.position.needsUpdate = true;
     }
+
+    /* ---- zone arrival events ---- */
+    var fxState = { z1:-99, z2:-99, z3:-99, z5:-99 };
+    var coreSurge = 0, bank = 0;
+    var pulseMesh = new THREE.Mesh(
+      new THREE.TorusGeometry(9, 0.16, 10, 80),
+      new THREE.MeshBasicMaterial({ color:EMBER, transparent:true, opacity:0 })
+    );
+    pulseMesh.position.copy(core.position);
+    scene.add(pulseMesh);
+    var pulseT = -99;
+    fxTrigger = function(zone){
+      if (zone === 1) fxState.z1 = 0;
+      if (zone === 2) fxState.z2 = 0;
+      if (zone === 3) fxState.z3 = 0;
+      if (zone === 5){ fxState.z5 = 0; pulseT = 0; coreSurge = 1; }
+    };
 
     var clock = new THREE.Clock();
     var hidden = false;
@@ -770,6 +930,7 @@ h2.out .org{color:var(--org)}
       if (hidden) return;
       var dt = Math.min(clock.getDelta(), 0.05);
       var t = clock.elapsedTime;
+      scrollVelSmooth *= Math.exp(-2.6 * dt);
 
       /* camera from scroll */
       var seg = clamp(Math.floor(globalT), 0, KEYS.length - 2);
@@ -796,29 +957,77 @@ h2.out .org{color:var(--org)}
         );
       }
       camera.lookAt(lookTarget);
+      if (!reduced){
+        var bankTarget = clamp(-scrollVelSmooth * 0.000011, -0.03, 0.03);
+        bank += (bankTarget - bank) * 0.055;
+        camera.rotateZ(bank);
+      }
       camZLive = camera.position.z;
       roCam.textContent = "DEPTH " + Math.abs(camZLive).toFixed(1).padStart(5, "0");
 
       if (!reduced){
+        /* advance zone arrival events */
+        ["z1","z2","z3","z5"].forEach(function(k){ if (fxState[k] >= 0) fxState[k] += dt; });
+        if (pulseT >= 0) pulseT += dt;
+        var surgeTarget = (Math.round(globalT) === 5) ? 0.45 : 0;
+        if (coreSurge > surgeTarget) coreSurge = Math.max(surgeTarget, coreSurge - dt * 0.35);
+
         /* the world never stops */
         core.rotation.y += dt * 0.16;
         coreShell.rotation.x += dt * 0.11;
         coreShell.rotation.z += dt * 0.07;
-        var pulse = 1 + Math.sin(t * 1.35) * 0.055;
+        var pulse = (1 + Math.sin(t * 1.35) * 0.055) * (1 + coreSurge * 0.1);
         coreBall.scale.set(pulse, pulse, pulse);
-        coreLight.intensity = 250 + Math.sin(t * 1.35) * 55;
+        coreLight.intensity = (250 + Math.sin(t * 1.35) * 55) * (1 + coreSurge * 1.15);
         coreGlow.material.opacity = 0.58 + Math.sin(t * 1.35) * 0.1;
         coreRings.forEach(function(ring, i){
-          ring.rotation.z += dt * (0.1 + i * 0.05);
+          ring.rotation.z += dt * (0.1 + i * 0.05) * (1 + coreSurge * 2.2);
           ring.rotation.x += dt * 0.05 * (i + 1);
         });
+        /* zone 5 arrival: light pulse travels outward from the core */
+        if (pulseT >= 0 && pulseT < 2.2){
+          var pk = pulseT / 2.2;
+          pulseMesh.scale.setScalar(1 + pk * 5.2);
+          pulseMesh.material.opacity = 0.65 * (1 - pk);
+          pulseMesh.rotation.z += dt * 0.4;
+        } else {
+          pulseMesh.material.opacity = 0;
+        }
+        /* zone 1 arrival: pillar caps light up in sequence along the path */
+        if (fxState.z1 >= 0){
+          var hold1 = fxState.z1 < 4.6 ? 1 : Math.max(0.3, 1 - (fxState.z1 - 4.6) / 2.2);
+          caps.forEach(function(cm, i){
+            var lit = clamp(fxState.z1 * 1.25 - i * 0.05, 0, 1) * hold1;
+            cm.opacity = 0.75 + 0.25 * lit;
+            cm.color.setHex(lit > 0.6 ? 0xffc38f : 0xff5c1a);
+          });
+        }
         gates.forEach(function(gate, i){
           gate.rotation.z += dt * 0.12 * (i % 2 === 0 ? 1 : -1);
+          /* zone 2 arrival: first three gates flare open in sequence */
+          if (fxState.z2 >= 0 && i <= 2){
+            var lg = clamp((fxState.z2 - i * 0.45) / 0.9, 0, 1);
+            var gs = 1 + Math.sin(lg * Math.PI) * 0.13;
+            gate.userData.outer.scale.set(gs, gs, 1);
+            gate.userData.outer.material.opacity = 0.85 + 0.15 * lg;
+            gate.rotation.z += dt * lg * 1.6 * (i % 2 === 0 ? 1 : -1);
+          }
         });
+        /* zone 3 arrival: skill floaters brighten and assemble into formation */
+        var k3 = fxState.z3 < 0 ? 0 : clamp(fxState.z3 / 2.4, 0, 1);
+        var e3 = k3 * k3 * (3 - 2 * k3);
+        floaterMat.emissiveIntensity = 0.06 + 0.4 * e3;
         floaters.forEach(function(m){
           m.rotation.x += dt * m.userData.spin;
           m.rotation.y += dt * m.userData.spin * 0.8;
-          m.position.y = m.userData.baseY + Math.sin(t * 0.5 + m.userData.bobPhase) * 0.45;
+          if (m.userData.alignPos){
+            m.position.x = lerp(m.userData.origPos.x, m.userData.alignPos.x, e3);
+            m.position.z = lerp(m.userData.origPos.z, m.userData.alignPos.z, e3);
+            m.position.y = lerp(m.userData.origPos.y, m.userData.alignPos.y, e3)
+              + Math.sin(t * 0.5 + m.userData.bobPhase) * 0.45 * (1 - e3);
+          } else {
+            m.position.y = m.userData.baseY + Math.sin(t * 0.5 + m.userData.bobPhase) * 0.45;
+          }
         });
         moveStream(streamA, dt);
         moveStream(streamB, dt);
@@ -836,6 +1045,135 @@ h2.out .org{color:var(--org)}
     });
     frame();
     return true;
+  }
+
+  /* ================= exploration: travel, signals, transmission ================= */
+  function zoneTargetY(i){
+    var vh = window.innerHeight;
+    var maxScroll = Math.max(0, document.documentElement.scrollHeight - vh);
+    if (i <= 0) return 0;
+    var top = zones[i].offsetTop, h = zones[i].offsetHeight;
+    return clamp(top + h * 0.34 - vh * 0.5, 0, maxScroll);
+  }
+  var travelAnim = null;
+  function travelTo(i){
+    i = clamp(i, 0, zones.length - 1);
+    var target = zoneTargetY(i);
+    if (reduced){ travelAnim = null; window.scrollTo(0, target); return; }
+    travelAnim = { from: window.scrollY || 0, to: target, start: performance.now(), dur: 1200 };
+    requestAnimationFrame(travelStep);
+  }
+  function travelStep(now){
+    if (!travelAnim) return;
+    var k = clamp((now - travelAnim.start) / travelAnim.dur, 0, 1);
+    var e = k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+    window.scrollTo(0, travelAnim.from + (travelAnim.to - travelAnim.from) * e);
+    if (k < 1) requestAnimationFrame(travelStep); else travelAnim = null;
+  }
+  window.addEventListener("wheel", function(){ travelAnim = null; }, { passive:true });
+  window.addEventListener("touchstart", function(){ travelAnim = null; }, { passive:true });
+  Array.prototype.forEach.call(document.querySelectorAll("#topbar nav a, #topbar .mark"), function(a){
+    a.addEventListener("click", function(e){
+      var m = (a.getAttribute("href") || "").match(/z(\d)/);
+      if (m){ e.preventDefault(); travelTo(parseInt(m[1], 10)); }
+    });
+  });
+  document.addEventListener("keydown", function(e){
+    var cur = lastZone < 0 ? 0 : lastZone;
+    if (e.key === "ArrowDown"){ e.preventDefault(); travelTo(Math.min(zones.length - 1, cur + 1)); }
+    if (e.key === "ArrowUp"){ e.preventDefault(); travelTo(Math.max(0, cur - 1)); }
+  });
+
+  /* journey map */
+  var jdots = Array.prototype.slice.call(document.querySelectorAll(".jdot"));
+  jdots.forEach(function(d){
+    d.addEventListener("click", function(){ travelTo(parseInt(d.getAttribute("data-zone"), 10)); });
+  });
+  function updateMap(zi){
+    jdots.forEach(function(d, i){
+      d.classList.toggle("done", i <= maxReached && i !== zi);
+      d.classList.toggle("now", i === zi);
+    });
+  }
+
+  /* projects fly-in on zone entry */
+  function flyProjects(){
+    if (reduced) return;
+    Array.prototype.forEach.call(document.querySelectorAll(".proj"), function(c, i){
+      c.classList.remove("flyL", "flyR");
+      void c.offsetWidth;
+      c.style.animationDelay = (i * 0.1).toFixed(2) + "s";
+      c.classList.add(i % 2 ? "flyR" : "flyL");
+    });
+  }
+
+  /* zone 5 transmission reveal */
+  var txTimers = [], txInterval = null, txArmed = true;
+  function runTransmission(){
+    if (reduced) return;
+    var email = document.querySelector(".email-big");
+    if (!email) return;
+    txTimers.forEach(clearTimeout); txTimers = [];
+    if (txInterval){ clearInterval(txInterval); txInterval = null; }
+    var full = email.getAttribute("data-full") || email.textContent.trim();
+    email.setAttribute("data-full", full);
+    var links = document.querySelectorAll(".socials a");
+    Array.prototype.forEach.call(links, function(a){
+      a.classList.add("tx-prep");
+      a.style.opacity = "0"; a.style.transform = "translateY(10px)";
+    });
+    email.textContent = "";
+    var startT = performance.now(), totalMs = 520;
+    txInterval = setInterval(function(){
+      var k = Math.min(1, (performance.now() - startT) / totalMs);
+      email.textContent = full.slice(0, Math.ceil(k * full.length));
+      if (k >= 1){
+        clearInterval(txInterval); txInterval = null;
+        Array.prototype.forEach.call(links, function(a, i){
+          txTimers.push(setTimeout(function(){
+            a.style.opacity = "1"; a.style.transform = "translateY(0)";
+          }, i * 110));
+        });
+      }
+    }, 30);
+  }
+
+  /* discoverable signals */
+  var FACTS = [
+    "Dean's List, twice, during BS Computer Science.",
+    "Teaches 130 plus lab students every semester.",
+    "Nascon Code War winner, ACM Hackathon runner-up.",
+    "Runs a daily AI shorts channel, The Daily Commit.",
+    "ICPC Regionals: ranked 19th and 38th in Pakistan."
+  ];
+  var found = {}, foundCount = 0;
+  var factCard = document.getElementById("factCard");
+  var fcText = document.getElementById("fcText");
+  var fcTitle = document.getElementById("fcTitle");
+  var fcCount = document.getElementById("fcCount");
+  var roSignals = document.getElementById("roSignals");
+  function closeFact(){ factOpen = false; factCard.hidden = true; }
+  document.getElementById("fcClose").addEventListener("click", closeFact);
+  Array.prototype.forEach.call(document.querySelectorAll(".signal"), function(orb){
+    orb.addEventListener("click", function(){
+      var idx = parseInt(orb.getAttribute("data-fact"), 10);
+      fcTitle.textContent = "Signal 0" + (idx + 1) + " · Decoded";
+      fcText.textContent = FACTS[idx];
+      if (!found[idx]){ found[idx] = true; foundCount++; orb.classList.add("found"); }
+      roSignals.textContent = foundCount;
+      fcCount.textContent = "Signals " + foundCount + " / 5";
+      factScrollY = window.scrollY || 0;
+      factCard.hidden = false;
+      factOpen = true;
+    });
+  });
+
+  function onZoneChange(zi){
+    updateMap(zi);
+    if (fxTrigger) fxTrigger(zi);
+    if (zi === 4) flyProjects();
+    if (zi === 5 && txArmed){ txArmed = false; runTransmission(); }
+    if (zi !== 5) txArmed = true;
   }
 
   var worldOk = false;
