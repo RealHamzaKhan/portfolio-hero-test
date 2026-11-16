@@ -396,6 +396,68 @@ body.world-on .zone-inner > :not(.signal){
   border:0 !important;padding:0 !important;margin:-1px !important;
 }
 body.world-on .signal{pointer-events:auto}
+
+/* ---------- free roam: HUD, prompt, hint, joystick ---------- */
+body.world-on{overflow:hidden;height:100dvh}
+body.world-on main{height:100dvh;overflow:hidden;pointer-events:none}
+body.world-on #gl{touch-action:none;cursor:grab}
+body.world-on .signal{display:none !important}
+#topbar nav{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.ftbtn{
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--mut);background:rgba(5,6,10,.45);border:1px solid var(--line);border-radius:999px;
+  padding:8px 14px;cursor:pointer;min-height:32px;
+  transition:color .25s,border-color .25s,scale .15s ease-out;
+}
+.ftbtn:hover{color:var(--org);border-color:rgba(255,92,26,.6)}
+.ftbtn:active{scale:.97}
+.ftbtn:focus-visible{outline:2px solid var(--org);outline-offset:2px}
+.ftbtn.now{color:var(--org);border-color:var(--org)}
+@media (pointer:coarse){ .ftbtn{min-height:44px;padding:10px 16px} }
+#prompt{
+  position:fixed;left:50%;bottom:96px;transform:translateX(-50%) translateY(8px);z-index:55;
+  max-width:min(520px,calc(100vw - 32px));text-align:center;cursor:pointer;
+  background:rgba(8,9,15,.92);border:1px solid rgba(255,92,26,.55);border-radius:12px;
+  padding:12px 22px;backdrop-filter:blur(8px);
+  opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;
+}
+#prompt.show{opacity:1;pointer-events:auto;transform:translateX(-50%) translateY(0)}
+#prompt .p-name{font-family:var(--syne);font-weight:700;font-size:17px}
+#prompt .p-sub{display:block;margin-top:3px;font-family:var(--mono);font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--org)}
+#prompt:focus-visible{outline:2px solid var(--org);outline-offset:3px}
+#hint{
+  position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:55;white-space:nowrap;
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink);
+  background:rgba(8,9,15,.85);border:1px solid var(--line);border-radius:999px;padding:11px 22px;
+  transition:opacity .8s;pointer-events:none;text-shadow:0 1px 8px rgba(0,0,0,.9);
+}
+#hint.gone{opacity:0}
+#hint b{color:var(--org);font-weight:500}
+#joy{
+  position:fixed;left:20px;bottom:calc(20px + env(safe-area-inset-bottom,0px));z-index:56;
+  width:124px;height:124px;border-radius:50%;display:none;
+  border:1px solid rgba(244,239,232,.28);background:rgba(10,11,18,.42);backdrop-filter:blur(4px);
+  touch-action:none;
+}
+#joy.on{display:block}
+    body.coarse #hint{bottom:calc(170px + env(safe-area-inset-bottom, 0px))}
+    @media (max-width: 900px){ #hint{bottom:78px} }
+#joyKnob{
+  position:absolute;left:50%;top:50%;width:54px;height:54px;border-radius:50%;
+  transform:translate(-50%,-50%);
+  background:rgba(255,92,26,.30);border:1px solid rgba(255,92,26,.85);
+}
+@media (max-width:700px){
+  #topbar{flex-wrap:wrap;row-gap:8px}
+  #zoneName{display:none}
+  #topbar nav{order:3;width:100%;justify-content:flex-start}
+  #readout{left:auto;right:16px;text-align:right}
+  #readout .row{flex-direction:row-reverse}
+  #hint{white-space:normal;text-align:center;width:calc(100vw - 32px);line-height:1.7}
+  #prompt{bottom:164px}
+  #factCard{bottom:170px}
+}
+@media (prefers-reduced-motion: reduce){ #prompt,#hint{transition:none} }
 </style>
 </head>
 <body>
@@ -406,33 +468,30 @@ body.world-on .signal{pointer-events:auto}
 <div id="grain"></div>
 
 <header id="topbar">
-  <a class="mark" href="#z0">HK<i>.</i></a>
-  <div id="zoneName">ZONE <b>00</b> · ENTRANCE</div>
-  <nav>
-    <a href="#z1">About</a>
-    <a href="#z2">Experience</a>
-    <a href="#z4">Projects</a>
-    <a href="#z5">Contact</a>
+  <a class="mark" href="#" id="homeMark">HK<i>.</i></a>
+  <div id="zoneName">AREA <b>·</b> PLAZA</div>
+  <nav aria-label="Fast travel">
+    <button type="button" class="ftbtn now" data-area="plaza">Plaza</button>
+    <button type="button" class="ftbtn" data-area="about">About</button>
+    <button type="button" class="ftbtn" data-area="experience">Experience</button>
+    <button type="button" class="ftbtn" data-area="skills">Skills</button>
+    <button type="button" class="ftbtn" data-area="projects">Projects</button>
+    <button type="button" class="ftbtn" data-area="core">Core</button>
   </nav>
   <div id="topRule"></div>
-  <div id="progressLine"></div>
 </header>
 
 <div id="readout">
-  <div class="row"><span class="k">Zone</span><span><b id="roZone">00</b> / 05</span></div>
-  <div class="row"><span class="k">Cam</span><span id="roCam">DEPTH 000.0</span></div>
-  <div class="row"><span class="k">Status</span><span id="roStatus">WORLD LIVE</span></div>
+  <div class="row"><span class="k">Area</span><span><b id="roArea">PLAZA</b></span></div>
   <div class="row"><span class="k">Signals</span><span><b id="roSignals">0</b> / 5</span></div>
+  <div class="row"><span class="k">Status</span><span id="roStatus">WORLD LIVE</span></div>
 </div>
 
-<nav id="jmap" aria-label="Journey map">
-  <button type="button" class="jdot" data-zone="0" aria-label="Go to Entrance"><span class="jlab">00 · Entrance</span></button>
-  <button type="button" class="jdot" data-zone="1" aria-label="Go to The Engineer"><span class="jlab">01 · Engineer</span></button>
-  <button type="button" class="jdot" data-zone="2" aria-label="Go to Experience"><span class="jlab">02 · Experience</span></button>
-  <button type="button" class="jdot" data-zone="3" aria-label="Go to Skills"><span class="jlab">03 · Skills</span></button>
-  <button type="button" class="jdot" data-zone="4" aria-label="Go to Projects"><span class="jlab">04 · Projects</span></button>
-  <button type="button" class="jdot" data-zone="5" aria-label="Go to Output"><span class="jlab">05 · Output</span></button>
-</nav>
+<div id="prompt" role="button" tabindex="0" hidden><span class="p-name" id="promptName"></span><span class="p-sub" id="promptSub"></span></div>
+
+<div id="hint" hidden></div>
+
+<div id="joy" aria-hidden="true"><div id="joyKnob"></div></div>
 
 <div id="factCard" hidden role="dialog" aria-label="Signal fact">
   <div class="fc-head"><span id="fcTitle">Signal · Decoded</span><button type="button" id="fcClose" aria-label="Close fact">×</button></div>
@@ -626,135 +685,95 @@ body.world-on .signal{pointer-events:auto}
 
 </main>
 
-<script src="js/three.min.js"></script>
-<script>
+<script type="importmap">
+{ "imports": {
+  "three": "./js/three.module.min.js",
+  "three/addons/": "./js/addons/"
+} }
+</script>
+<script type="module">
+import * as THREE from "three";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 (function(){
   "use strict";
   var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var isMobile = window.innerWidth < 700;
 
-  /* ================= scroll / zone logic (works with or without WebGL) ================= */
-  var zones = Array.prototype.slice.call(document.querySelectorAll(".zone"));
-  var inners = zones.map(function(z){ return z.querySelector(".zone-inner"); });
-  var zoneNameEl = document.getElementById("zoneName");
-  var progressEl = document.getElementById("progressLine");
-  var roZone = document.getElementById("roZone");
-  var roCam = document.getElementById("roCam");
-  var roStatus = document.getElementById("roStatus");
-  var NAMES = zones.map(function(z){ return z.getAttribute("data-name"); });
-
-  /* exploration state, shared between scroll logic and the world */
-  var worldOn = false;
-  var lastZone = -1, maxReached = 0;
-  var prevScrollY = window.scrollY || 0, prevT = performance.now();
-  var scrollVelSmooth = 0;   // px per second, smoothed
-  var fxTrigger = null;      // set by the 3D world when it inits
-  var factOpen = false, factScrollY = 0;
-
-  var scrollY = window.scrollY || 0;
-  var globalT = 0;           // float: zone index + local progress
-  var docProgress = 0;
-
-  /* camera stop anchors: one scroll anchor per in-world content stop */
-  var stopAnchors = [];
-  var stopFloat = 0;
-  var camStops = [];         // filled by the world layout: [{pos, look}]
-  var outputTyper = null;    // set by the world when the output sign exists
-  function narrowLayout(){ return window.innerWidth / Math.max(1, window.innerHeight) < 0.85; }
-  function zoneAnchor(i, frac){
-    var vh = window.innerHeight;
-    return Math.max(0, zones[i].offsetTop + zones[i].offsetHeight * frac - vh * 0.5);
-  }
-  function computeAnchors(){
-    var list = [0];
-    list.push(zoneAnchor(1, 0.5));
-    [0.28, 0.5, 0.72].forEach(function(f){ list.push(zoneAnchor(2, f)); });
-    if (narrowLayout()) for (var sk = 0; sk < 6; sk++) list.push(zoneAnchor(3, (sk + 0.5) / 6));
-    else list.push(zoneAnchor(3, 0.5));
-    for (var k = 0; k < 6; k++) list.push(zoneAnchor(4, (k + 0.5) / 6));
-    list.push(zoneAnchor(5, 0.45));
-    for (var i = 1; i < list.length; i++) list[i] = Math.max(list[i], list[i - 1] + 40);
-    stopAnchors = list;
-  }
-  function updateStopFloat(){
-    if (!stopAnchors.length){ stopFloat = 0; return; }
-    var y = scrollY;
-    if (y <= stopAnchors[0]){ stopFloat = 0; return; }
-    var last = stopAnchors.length - 1;
-    if (y >= stopAnchors[last]){ stopFloat = last; return; }
-    for (var i = 0; i < last; i++){
-      if (y < stopAnchors[i + 1]){
-        stopFloat = i + (y - stopAnchors[i]) / Math.max(1, stopAnchors[i + 1] - stopAnchors[i]);
-        return;
-      }
-    }
-    stopFloat = last;
-  }
-
+  /* ================= shared state, facts, fast travel ================= */
   function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
   function smooth(a,b,x){ var t = clamp((x-a)/(b-a),0,1); return t*t*(3-2*t); }
   function lerp(a,b,t){ return a + (b-a)*t; }
+  var coarse = window.matchMedia("(pointer: coarse)").matches || "ontouchstart" in window;
+  if (coarse) document.body.classList.add("coarse");
 
-  function measure(){
-    scrollY = window.scrollY || window.pageYOffset || 0;
-    var nowT = performance.now();
-    var dtS = Math.max(1, nowT - prevT) / 1000;
-    var instV = (scrollY - prevScrollY) / dtS;
-    if (Math.abs(instV) < 5000) scrollVelSmooth += (instV - scrollVelSmooth) * 0.45;
-    prevScrollY = scrollY; prevT = nowT;
-    if (factOpen && Math.abs(scrollY - factScrollY) > 40) closeFact();
-    var vh = window.innerHeight;
-    var maxScroll = Math.max(1, document.documentElement.scrollHeight - vh);
-    docProgress = clamp(scrollY / maxScroll, 0, 1);
-    var trigger = scrollY + vh * 0.5;
-    globalT = zones.length - 1;
-    for (var i = 0; i < zones.length; i++){
-      var top = zones[i].offsetTop;
-      var h = zones[i].offsetHeight;
-      if (trigger < top + h || i === zones.length - 1){
-        globalT = i + clamp((trigger - top) / h, 0, 1);
-        break;
-      }
-    }
-    // content fade / slide per zone
-    for (var j = 0; j < zones.length; j++){
-      var local = clamp(globalT - j, 0, 1);
-      var fadeIn = (j === 0) ? 1 : smooth(0.02, 0.22, local);
-      var fadeOut = (j === zones.length - 1) ? 1 : 1 - smooth(0.8, 0.99, local);
-      var op = reduced ? 1 : fadeIn * fadeOut;
-      var ty = reduced ? 0 : (1 - fadeIn) * 46 + (1 - fadeOut) * -30;
-      inners[j].style.opacity = op.toFixed(3);
-      inners[j].style.transform = "translateY(" + ty.toFixed(1) + "px)";
-      inners[j].style.pointerEvents = worldOn ? "none" : (op < 0.06 ? "none" : "auto");
-    }
-    updateStopFloat();
-    // projects gallery (fallback HTML mode only): pan the tall grid as the zone passes
-    var panEl = document.getElementById("projPan");
-    if (panEl && !worldOn){
-      var pLocal = clamp(globalT - 4, 0, 1);
-      var overflow = Math.max(0, panEl.offsetHeight - window.innerHeight + 150);
-      var panY = reduced ? 0 : -overflow * smooth(0.15, 0.97, pLocal);
-      panEl.style.transform = "translateY(" + panY.toFixed(1) + "px)";
-    }
-    var zi = clamp(Math.round(globalT), 0, zones.length - 1);
-    zoneNameEl.innerHTML = "ZONE <b>0" + zi + "</b> · " + NAMES[zi];
-    roZone.textContent = "0" + zi;
-    progressEl.style.width = (docProgress * 100).toFixed(2) + "%";
-    if (zi !== lastZone){
-      lastZone = zi;
-      if (zi > maxReached) maxReached = zi;
-      onZoneChange(zi);
-    }
+  var zoneNameEl = document.getElementById("zoneName");
+  var roArea = document.getElementById("roArea");
+  var roStatus = document.getElementById("roStatus");
+  var roSignals = document.getElementById("roSignals");
+  var promptEl = document.getElementById("prompt");
+  var promptName = document.getElementById("promptName");
+  var promptSub = document.getElementById("promptSub");
+  var hintEl = document.getElementById("hint");
+
+  var worldOn = false;
+  var outputTyper = null;   // set by the world when the output sign exists
+  var flyHook = null;       // set by the world: function(areaKey)
+  var currentArea = "plaza";
+
+  /* discoverable signals: facts and the card (collection happens in the world) */
+  var FACTS = [
+    "Dean's List, twice, during BS Computer Science.",
+    "Teaches 130 plus lab students every semester.",
+    "Nascon Code War winner, ACM Hackathon runner-up.",
+    "Runs a daily AI shorts channel, The Daily Commit.",
+    "ICPC Regionals: ranked 19th and 38th in Pakistan."
+  ];
+  var found = {}, foundCount = 0;
+  var factCard = document.getElementById("factCard");
+  var fcText = document.getElementById("fcText");
+  var fcTitle = document.getElementById("fcTitle");
+  var fcCount = document.getElementById("fcCount");
+  var factOpen = false;
+  function closeFact(){ factOpen = false; factCard.hidden = true; }
+  document.getElementById("fcClose").addEventListener("click", closeFact);
+  function showFact(idx){
+    fcTitle.textContent = "Signal 0" + (idx + 1) + " \u00B7 Decoded";
+    fcText.textContent = FACTS[idx];
+    if (!found[idx]){ found[idx] = true; foundCount++; }
+    roSignals.textContent = foundCount;
+    fcCount.textContent = "Signals " + foundCount + " / 5";
+    factCard.hidden = false;
+    factOpen = true;
   }
-  window.addEventListener("scroll", measure, { passive:true });
-  window.addEventListener("resize", measure);
+  /* fallback page (no WebGL): the HTML orbs inside the zones still collect */
+  Array.prototype.forEach.call(document.querySelectorAll(".signal"), function(orb){
+    orb.addEventListener("click", function(){
+      showFact(parseInt(orb.getAttribute("data-fact"), 10));
+      orb.classList.add("found");
+    });
+  });
 
-  /* ================= mouse parallax ================= */
-  var mouseX = 0, mouseY = 0, smX = 0, smY = 0;
-  window.addEventListener("mousemove", function(e){
-    mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
-    mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
-  }, { passive:true });
+  /* fast travel buttons (fly in the world, scroll in the fallback page) */
+  var AREA_ZONE = { plaza:"z0", about:"z1", experience:"z2", skills:"z3", projects:"z4", core:"z5" };
+  var ftbtns = Array.prototype.slice.call(document.querySelectorAll(".ftbtn"));
+  function setAreaUI(key, label){
+    currentArea = key;
+    roArea.textContent = label;
+    zoneNameEl.innerHTML = "AREA <b>\u00B7</b> " + label;
+    ftbtns.forEach(function(b){ b.classList.toggle("now", b.getAttribute("data-area") === key); });
+  }
+  ftbtns.forEach(function(b){
+    b.addEventListener("click", function(){
+      var key = b.getAttribute("data-area");
+      if (flyHook) flyHook(key);
+      else { var z = document.getElementById(AREA_ZONE[key]); if (z) z.scrollIntoView(); }
+    });
+  });
+  document.getElementById("homeMark").addEventListener("click", function(e){
+    e.preventDefault();
+    if (flyHook) flyHook("plaza");
+    else window.scrollTo(0, 0);
+  });
 
   /* ================= the world ================= */
   var camZLive = 12;
@@ -765,18 +784,56 @@ body.world-on .signal{pointer-events:auto}
     try {
       renderer = new THREE.WebGLRenderer({ canvas:canvas, antialias:true, powerPreference:"high-performance" });
     } catch(e){ return false; }
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, isMobile ? 1.5 : 2));
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.15;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.setSize(window.innerWidth, window.innerHeight);
 
     var scene = new THREE.Scene();
     scene.background = new THREE.Color(0x05060a);
-    scene.fog = new THREE.FogExp2(0x05060a, 0.016);
+    scene.fog = new THREE.FogExp2(0x05060a, 0.0135);
 
     var camera = new THREE.PerspectiveCamera(58, window.innerWidth/window.innerHeight, 0.1, 400);
+    var dressing = new THREE.Group();
+    scene.add(dressing);
 
     var ORANGE = 0xff5c1a, EMBER = 0xff8c4a, DARK = 0x11131d, MID = 0x1b1e2a;
 
-    scene.add(new THREE.AmbientLight(0x2a2d3a, 1.4));
+    /* environment reflections: a small painted equirect canvas */
+    (function(){
+      var ec = document.createElement("canvas"); ec.width = 1024; ec.height = 512;
+      var g = ec.getContext("2d");
+      var grad = g.createLinearGradient(0, 0, 0, 512);
+      grad.addColorStop(0, "#0d1322"); grad.addColorStop(0.52, "#131018");
+      grad.addColorStop(0.62, "#2a1408"); grad.addColorStop(0.72, "#0a0a10"); grad.addColorStop(1, "#04050a");
+      g.fillStyle = grad; g.fillRect(0, 0, 1024, 512);
+      var rg = g.createRadialGradient(512, 330, 10, 512, 330, 260);
+      rg.addColorStop(0, "rgba(255,150,70,0.95)"); rg.addColorStop(0.4, "rgba(255,92,26,0.4)"); rg.addColorStop(1, "rgba(255,92,26,0)");
+      g.fillStyle = rg; g.fillRect(0, 0, 1024, 512);
+      g.fillStyle = "rgba(190,205,235,0.5)";
+      for (var i = 0; i < 26; i++){ g.fillRect((i * 197) % 1024, 120 + (i * 53) % 120, 26, 3); }
+      var et = new THREE.CanvasTexture(ec);
+      et.mapping = THREE.EquirectangularReflectionMapping;
+      et.colorSpace = THREE.SRGBColorSpace;
+      scene.environment = et;
+    })();
+
+    scene.add(new THREE.AmbientLight(0x2a2d3a, 0.7));
+    scene.add(new THREE.HemisphereLight(0x33405e, 0x1c0f06, 0.55));
+    var keyLight = new THREE.DirectionalLight(0xffd9b3, 2.1);
+    keyLight.position.set(30, 44, -26);
+    keyLight.target.position.set(0, 0, -72);
+    keyLight.castShadow = true;
+    keyLight.shadow.mapSize.set(isMobile ? 1024 : 2048, isMobile ? 1024 : 2048);
+    keyLight.shadow.camera.left = -58; keyLight.shadow.camera.right = 58;
+    keyLight.shadow.camera.top = 58; keyLight.shadow.camera.bottom = -58;
+    keyLight.shadow.camera.near = 5; keyLight.shadow.camera.far = 190;
+    keyLight.shadow.bias = -0.0006;
+    keyLight.shadow.normalBias = 0.03;
+    scene.add(keyLight); scene.add(keyLight.target);
     var coreLight = new THREE.PointLight(ORANGE, 260, 190, 1.7);
     coreLight.position.set(0, 3, -158);
     scene.add(coreLight);
@@ -798,7 +855,7 @@ body.world-on .signal{pointer-events:auto}
     );
     core.add(coreShell);
     var coreRings = [];
-    [[10.5, 0.5, 0.2],[12.6, 1.2, 0.9],[14.8, 0.2, 1.6]].forEach(function(cfg, i){
+    [[10.5, 0.5, 0.2],[12.6, 1.2, 0.9],[14.8, 0.2, 1.6],[17.6, 0.9, 0.5],[20.5, 0.3, 1.1]].forEach(function(cfg, i){
       var ring = new THREE.Mesh(
         new THREE.TorusGeometry(cfg[0], 0.09, 10, 90),
         new THREE.MeshBasicMaterial({ color: i === 1 ? EMBER : ORANGE, transparent:true, opacity:0.8 })
@@ -823,7 +880,7 @@ body.world-on .signal{pointer-events:auto}
       return gt;
     }
     var glowTex = glowTexture();
-    var coreGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map:glowTex, transparent:true, depthWrite:false }));
+    var coreGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map:glowTex, transparent:true, depthWrite:false, fog:false }));
     coreGlow.scale.set(46, 46, 1);
     coreGlow.position.copy(core.position);
     scene.add(coreGlow);
@@ -844,7 +901,7 @@ body.world-on .signal{pointer-events:auto}
       gate.userData.outer = outer;
       gate.userData.inner = inner;
       gate.position.set(0, 2.2, z);
-      scene.add(gate); gates.push(gate);
+      dressing.add(gate); gates.push(gate);
     });
 
     /* ---- pillars ---- */
@@ -853,53 +910,112 @@ body.world-on .signal{pointer-events:auto}
     var caps = [];
     var rng = 7;
     function rand(){ rng = (rng * 16807) % 2147483647; return rng / 2147483647; }
+    /* content districts: keep dressing out of them (x0, x1, z0, z1) */
+    var EXCLUDE = [
+      [-27, -11, -100, -84], [8, 30, -70, -54], [-26, -12, -44, -28],
+      [4, 30, -140, -116], [-13, 13, -156, -142], [-12, 12, -8, 4]
+    ];
+    function excluded(x, z, pad){
+      for (var i = 0; i < EXCLUDE.length; i++){
+        var R = EXCLUDE[i];
+        if (x > R[0] - pad && x < R[1] + pad && z > R[2] - pad && z < R[3] + pad) return true;
+      }
+      return false;
+    }
     for (var pz = -8; pz > -155; pz -= 11){
       [-1, 1].forEach(function(side){
+        var px = side * (9.5 + rand() * 4.5), pzz = pz - rand() * 5;
+        if (excluded(px, pzz, 1.5)) return;
         var h = 7 + rand() * 13;
         var pillar = new THREE.Mesh(new THREE.BoxGeometry(1.4, h, 1.4), pillarMat);
-        pillar.position.set(side * (9.5 + rand() * 4.5), h/2 - 2.5, pz - rand() * 5);
-        scene.add(pillar);
+        pillar.position.set(px, h/2 - 2.5, pzz);
+        pillar.castShadow = !isMobile; pillar.receiveShadow = true;
+        dressing.add(pillar);
         var capMat = pillarEdge.clone();
         var cap = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.1, 1.5), capMat);
         cap.position.set(pillar.position.x, h - 2.5 + 0.05, pillar.position.z);
-        scene.add(cap);
+        dressing.add(cap);
         caps.push(capMat);
       });
     }
 
     /* ---- floating structures ---- */
     var floaters = [];
-    var floaterMat = new THREE.MeshStandardMaterial({ color:MID, roughness:0.6, metalness:0.5, emissive:0xff5c1a, emissiveIntensity:0.06 });
+    var floaterMat = new THREE.MeshStandardMaterial({ color:MID, roughness:0.38, metalness:0.65, emissive:0xff5c1a, emissiveIntensity:0.06, envMapIntensity:0.8 });
     var floaterCount = isMobile ? 12 : 26;
     for (var f = 0; f < floaterCount; f++){
       var geo = (f % 3 === 0) ? new THREE.OctahedronGeometry(0.9 + rand()*1.1)
                              : new THREE.BoxGeometry(1.3 + rand()*1.4, 1.3 + rand()*1.4, 1.3 + rand()*1.4);
       var m = new THREE.Mesh(geo, floaterMat);
       var sideF = (f % 2 === 0) ? -1 : 1;
-      m.position.set(sideF * (17 + rand()*5), 0.5 + rand()*8.5, -6 - rand()*148);
+      var fx2 = sideF * (17 + rand()*6), fz2 = -6 - rand()*148;
+      if (excluded(fx2, fz2, 5)) fx2 += sideF * 9;
+      m.position.set(fx2, 0.5 + rand()*8.5, fz2);
       m.rotation.set(rand()*3, rand()*3, rand()*3);
       m.userData.spin = 0.08 + rand()*0.22;
       m.userData.bobPhase = rand() * 6.28;
       m.userData.baseY = m.position.y;
-      scene.add(m); floaters.push(m);
+      m.castShadow = !isMobile;
+      dressing.add(m); floaters.push(m);
     }
-    /* skills-zone floaters get an aligned formation for the zone 3 arrival event */
-    var skillFloaters = floaters.filter(function(m){ return m.position.z < -66 && m.position.z > -104; });
-    skillFloaters.forEach(function(m, k){
-      m.userData.origPos = m.position.clone();
-      m.userData.alignPos = new THREE.Vector3(
-        (m.position.x < 0 ? -12.5 : 12.5),
-        2.6 + (k % 3) * 2.6,
-        -86 - Math.floor(k / 2) * 6
-      );
-    });
 
     /* ---- floor grid ---- */
     var grid = new THREE.GridHelper(420, 105, 0x3a2415, 0x12141e);
     grid.position.y = -2.6;
     grid.material.transparent = true;
     grid.material.opacity = 0.5;
-    scene.add(grid);
+    dressing.add(grid);
+
+    /* physical ground: painted markings, PBR sheen, receives shadows */
+    var groundTex = (function(){
+      var c = document.createElement("canvas"); c.width = c.height = 1024;
+      var g = c.getContext("2d");
+      g.fillStyle = "#0a0c12"; g.fillRect(0, 0, 1024, 1024);
+      for (var i = 0; i < 5200; i++){
+        g.fillStyle = "rgba(255,255,255," + (Math.random() * 0.03).toFixed(3) + ")";
+        g.fillRect(Math.random() * 1024, Math.random() * 1024, 2, 2);
+      }
+      g.strokeStyle = "rgba(244,239,232,0.07)"; g.lineWidth = 2;
+      for (var gx = 0; gx <= 1024; gx += 64){
+        g.beginPath(); g.moveTo(gx, 0); g.lineTo(gx, 1024); g.stroke();
+        g.beginPath(); g.moveTo(0, gx); g.lineTo(1024, gx); g.stroke();
+      }
+      g.strokeStyle = "rgba(255,92,26,0.22)"; g.lineWidth = 3;
+      g.beginPath(); g.arc(512, 400, 150, 0, 7); g.stroke();
+      g.strokeStyle = "rgba(255,92,26,0.10)"; g.lineWidth = 12;
+      g.beginPath(); g.arc(512, 400, 196, 0, 7); g.stroke();
+      g.fillStyle = "rgba(255,92,26,0.12)";
+      g.fillRect(120, 120, 200, 130); g.fillRect(704, 300, 200, 130);
+      g.fillRect(120, 560, 200, 130); g.fillRect(660, 700, 240, 150);
+      var gt2 = new THREE.CanvasTexture(c);
+      gt2.colorSpace = THREE.SRGBColorSpace;
+      gt2.anisotropy = renderer.capabilities.getMaxAnisotropy();
+      return gt2;
+    })();
+    var ground = new THREE.Mesh(new THREE.PlaneGeometry(250, 250),
+      new THREE.MeshStandardMaterial({ map:groundTex, roughness:0.38, metalness:0.55, envMapIntensity:0.65 }));
+    ground.rotation.x = -Math.PI / 2;
+    ground.position.set(0, -2.62, -70);
+    ground.receiveShadow = true;
+    dressing.add(ground);
+    /* boulevard light strips guiding the eye between districts */
+    var stripMat = new THREE.MeshBasicMaterial({ color:0xff5c1a, transparent:true, opacity:0.32 });
+    [-6.2, 6.2].forEach(function(sx){
+      var strip = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.05, 150), stripMat);
+      strip.position.set(sx, -2.56, -68);
+      dressing.add(strip);
+    });
+
+    var dotCv = document.createElement("canvas");
+    dotCv.width = dotCv.height = 64;
+    var dotCtx = dotCv.getContext("2d");
+    var dotGrad = dotCtx.createRadialGradient(32, 32, 2, 32, 32, 30);
+    dotGrad.addColorStop(0, "rgba(255,255,255,1)");
+    dotGrad.addColorStop(0.4, "rgba(255,255,255,0.7)");
+    dotGrad.addColorStop(1, "rgba(255,255,255,0)");
+    dotCtx.fillStyle = dotGrad;
+    dotCtx.fillRect(0, 0, 64, 64);
+    var dotTex = new THREE.CanvasTexture(dotCv);
 
     /* ---- light streams: lanes of points rushing past ---- */
     function makeStream(count, spread, size, speed, opacity){
@@ -911,7 +1027,7 @@ body.world-on .signal{pointer-events:auto}
       }
       var geoS = new THREE.BufferGeometry();
       geoS.setAttribute("position", new THREE.BufferAttribute(pos, 3));
-      var mat = new THREE.PointsMaterial({ color:EMBER, size:size, transparent:true, opacity:opacity, depthWrite:false });
+      var mat = new THREE.PointsMaterial({ map:dotTex, color:EMBER, size:size, transparent:true, opacity:opacity, depthWrite:false });
       var pts = new THREE.Points(geoS, mat);
       pts.userData.speed = speed;
       scene.add(pts);
@@ -931,7 +1047,7 @@ body.world-on .signal{pointer-events:auto}
     var dustGeo = new THREE.BufferGeometry();
     dustGeo.setAttribute("position", new THREE.BufferAttribute(dustPos, 3));
     var dust = new THREE.Points(dustGeo, new THREE.PointsMaterial({
-      color:0xd8c9b8, size:0.075, transparent:true, opacity:0.5, depthWrite:false
+      map:dotTex, color:0xd8c9b8, size:0.075, transparent:true, opacity:0.5, depthWrite:false
     }));
     scene.add(dust);
 
@@ -939,7 +1055,7 @@ body.world-on .signal{pointer-events:auto}
        Every panel renders its text onto a canvas texture and stands
        in the scene as a physical sign, slab or monolith. */
     var maxAniso = renderer.capabilities.getMaxAnisotropy();
-    var backMat = new THREE.MeshStandardMaterial({ color:0x0d1017, roughness:0.6, metalness:0.4, emissive:0xff5c1a, emissiveIntensity:0.045 });
+    var backMat = new THREE.MeshStandardMaterial({ color:0x0d1017, roughness:0.42, metalness:0.62, emissive:0xff5c1a, emissiveIntensity:0.045, envMapIntensity:0.9 });
     var pulseEdges = [];
     var animPanels = [];
     var clickTargets = [];
@@ -1000,6 +1116,7 @@ body.world-on .signal{pointer-events:auto}
       tex.colorSpace = THREE.SRGBColorSpace;
       var group = new THREE.Group();
       var back = new THREE.Mesh(new THREE.BoxGeometry(ww + 0.22, wh + 0.22, 0.14), backMat);
+      back.castShadow = !isMobile; back.receiveShadow = true;
       var edgeMat = new THREE.MeshBasicMaterial({ color:ORANGE, transparent:true, opacity:0.5, side:THREE.DoubleSide });
       var edge = new THREE.Mesh(new THREE.PlaneGeometry(ww + 0.1, wh + 0.1), edgeMat);
       edge.position.z = 0.078;
@@ -1330,59 +1447,137 @@ body.world-on .signal{pointer-events:auto}
         look: new THREE.Vector3(obj.position.x, obj.position.y, obj.position.z)
       };
     }
+    /* ================= layout: districts, not a line ================= */
+    var IT = [];         // interactables
+    var OBST = [];       // collision circles {x, z, r}
+    var AREASTOPS = {};  // fast travel stops per area key
+    var orbList = [];
+    var AREAS = [
+      { key:"plaza", label:"PLAZA", x:0, z:-2 },
+      { key:"about", label:"ABOUT", x:-19, z:-36 },
+      { key:"experience", label:"EXPERIENCE", x:19.6, z:-62 },
+      { key:"skills", label:"SKILLS", x:-19, z:-92 },
+      { key:"projects", label:"PROJECTS", x:17, z:-126 },
+      { key:"core", label:"THE CORE", x:0, z:-149 }
+    ];
+    function panelNormal(rotY){ return new THREE.Vector3(Math.sin(rotY), 0, Math.cos(rotY)); }
+    function stopForRot(obj, w, h, m, rotY){
+      var d = fitDist(w, h, m);
+      var n = panelNormal(rotY);
+      return {
+        pos: new THREE.Vector3(obj.position.x + n.x * d, obj.position.y + 0.15, obj.position.z + n.z * d),
+        look: new THREE.Vector3(obj.position.x, obj.position.y, obj.position.z)
+      };
+    }
+    function regIT(group, key, name, sub, opts){
+      opts = opts || {};
+      var e = { group:group, key:key, name:name, sub:sub, link:opts.link || null,
+        action:opts.action || null, range:opts.range || 12, rotY:opts.rotY || 0,
+        w:opts.w || 5, h:opts.h || 5, stop:null };
+      e.stop = stopForRot(group, e.w, e.h, opts.margin != null ? opts.margin : 1.0, e.rotY);
+      group.userData.it = e;
+      if (group.userData.face){
+        group.userData.face.userData.it = e;
+        if (clickTargets.indexOf(group.userData.face) < 0) clickTargets.push(group.userData.face);
+      }
+      IT.push(e);
+      OBST.push({ x:group.position.x, z:group.position.z, r:Math.max(e.w, 3) * 0.5 + 1.1 });
+      return e;
+    }
+    function buildOrbs(){
+      if (orbList.length) return;
+      var defs = [
+        [26.5, 3.2, -71],   // behind the experience towers
+        [-19, 8.8, -96],    // above the skills wall
+        [-25.5, 2.0, -45],  // behind the about monolith
+        [17, 8.4, -130],    // above the projects arc
+        [-7.5, 3.4, -153]   // beside the core
+      ];
+      defs.forEach(function(p, i){
+        var grp = new THREE.Group();
+        var ball = new THREE.Mesh(new THREE.SphereGeometry(0.34, 20, 20),
+          new THREE.MeshBasicMaterial({ color:0xffa245 }));
+        var spr = new THREE.Sprite(new THREE.SpriteMaterial({ map:glowTex, transparent:true, depthWrite:false, opacity:0.85 }));
+        spr.scale.set(3.4, 3.4, 1);
+        var ring = new THREE.Mesh(new THREE.TorusGeometry(0.62, 0.035, 8, 40),
+          new THREE.MeshBasicMaterial({ color:ORANGE, transparent:true, opacity:0.8 }));
+        grp.add(ball); grp.add(spr); grp.add(ring);
+        grp.position.set(p[0], p[1], p[2]);
+        grp.userData.signal = i;
+        grp.userData.ball = ball; grp.userData.spr = spr; grp.userData.ring = ring;
+        grp.userData.phase = Math.random() * 6.28;
+        grp.userData.by = p[1];
+        ball.userData.orb = grp;
+        scene.add(grp);
+        orbList.push(grp);
+        clickTargets.push(ball);
+      });
+    }
+    function collectOrb(grp){
+      showFact(grp.userData.signal);
+      grp.userData.ball.material.color.setHex(0xffffff);
+      grp.userData.spr.material.color.setHex(0xffffff);
+      grp.userData.ring.material.color.setHex(0xffffff);
+    }
     function layoutContent(){
       if (!contentReady) return;
-      var narrow = narrowLayout();
-      var S = [];
-      if (narrow){
-        signGroup.position.set(0, 5.6, -1);
-        portraitGroup.position.set(0.5, -0.6, 0.5);
-        haloSprite.position.set(0.5, -0.3, -0.6);
-        S.push({ pos:new THREE.Vector3(0, 3.0, 32.5), look:new THREE.Vector3(0, 2.8, -1) });
-      } else {
-        signGroup.position.set(-2.6, 3.1, -1);
-        portraitGroup.position.set(7.3, 2.55, -0.6);
-        haloSprite.position.set(7.3, 2.8, -1.4);
-        S.push({ pos:new THREE.Vector3(-0.25, 3.0, 11.4), look:new THREE.Vector3(-0.25, 3.0, -1) });
-      }
+      IT.length = 0; OBST.length = 0;
+      /* plaza */
+      signGroup.position.set(-3.2, 3.1, -2); signGroup.rotation.y = 0.06;
+      portraitGroup.position.set(7.6, 2.55, -1.5); portraitGroup.rotation.y = -0.1;
+      haloSprite.position.set(7.6, 2.8, -2.3);
       registerAnim(signGroup, 0.05);
       registerAnim(portraitGroup, 0.07);
-      monolithGroup.position.set(1.2, 3.4, -38);
+      regIT(signGroup, "sign", "Hamza Khan", "AI Engineer \u00B7 Portfolio 2026", { range:17, w:14.5, h:7.25, margin:1.2 });
+      regIT(portraitGroup, "portrait", "Hamza Raziq Khan", "Peshawar, Pakistan", { range:11, w:4.15, h:4.8, rotY:-0.1 });
+      AREASTOPS.plaza = { pos:new THREE.Vector3(0, 1.9, spawnZ()), look:new THREE.Vector3(-3.2, 3.0, -2) };
+      /* about: left district */
+      monolithGroup.position.set(-19, 3.4, -36); monolithGroup.rotation.y = 0.85;
       registerAnim(monolithGroup, 0.05);
-      S.push(stopFor(monolithGroup, 5.2, 9.92, 1.0));
+      var monoIT = regIT(monolithGroup, "about", "About \u00B7 The Engineer", "Machines that learn. Systems that ship.", { range:15, w:5.2, h:9.92, rotY:0.85 });
+      AREASTOPS.about = monoIT.stop;
+      /* experience: right district */
       towerGroups.forEach(function(g, i){
-        g.position.set(-6.4 + i * 6.4, 2.6, -68);
+        g.position.set(13 + i * 6.6, 2.6, -62); g.rotation.y = -0.8;
         registerAnim(g, 0.05);
-        S.push(stopFor(g, 3.3, 6.9, 1.0));
+        regIT(g, "job" + i, JOBS[i].title, JOBS[i].role, { range:11, w:3.3, h:6.9, rotY:-0.8 });
       });
-      if (narrow){
-        skillGroups.forEach(function(g, i){
-          g.position.set(i % 2 === 0 ? -7.5 : 7.5, 2.8, -88 - i * 7);
-          registerAnim(g, 0.06);
-          S.push(stopFor(g, 4.4, 2.75, 0.9));
-        });
-      } else {
-        skillGroups.forEach(function(g, i){
-          g.position.set((i % 3 - 1) * 4.9, i < 3 ? 5.7 : 2.3, -98);
-          registerAnim(g, 0.06);
-        });
-        var dw = fitDist(15.2, 6.9, 1.0);
-        S.push({ pos:new THREE.Vector3(0, 4.1, -98 + dw), look:new THREE.Vector3(0, 4.0, -98) });
-      }
+      var en = panelNormal(-0.8);
+      AREASTOPS.experience = {
+        pos:new THREE.Vector3(19.6 + en.x * 13.5, 2.7, -62 + en.z * 13.5),
+        look:new THREE.Vector3(19.6, 2.8, -62)
+      };
+      /* skills: left far district, floating formation */
+      skillGroups.forEach(function(g, i){
+        g.position.set(-24.4 + (i % 3) * 5.4, i < 3 ? 5.8 : 2.4, -92); g.rotation.y = 0.8;
+        registerAnim(g, 0.06);
+        regIT(g, "skill" + i, SKILLS[i].title, "Skill " + SKILLS[i].n, { range:10, w:4.4, h:2.75, rotY:0.8 });
+      });
+      var skC = new THREE.Vector3(-19, 4.1, -92), skN = panelNormal(0.8);
+      var skD = fitDist(16.6, 7.4, 1.2);
+      AREASTOPS.skills = { pos:new THREE.Vector3(skC.x + skN.x * skD, 4.0, skC.z + skN.z * skD), look:skC };
+      /* projects: an arc in its own district */
+      var arcC = { x:17, z:-118 }, arcR = 16;
       slabGroups.forEach(function(g, i){
-        var z = narrow ? -112 - i * 8 : -112 - i * 5.5;
-        g.position.set(i % 2 === 0 ? (narrow ? -2.8 : -4.3) : (narrow ? 2.8 : 4.3), 2.7, z);
+        var a = (-55 + i * 22) * Math.PI / 180;
+        g.position.set(arcC.x + arcR * Math.sin(a), 2.7, arcC.z - arcR * Math.cos(a));
+        g.rotation.y = -a;
         registerAnim(g, 0.05);
-        S.push(stopFor(g, 5.4, 7.2, 0.9));
+        var P = PROJECTS[i];
+        regIT(g, "proj" + i, P.name + " \u00B7 " + P.status, P.link ? "Click the slab to visit" : P.note,
+          { link:P.link, range:13, w:5.4, h:7.2, rotY:-a, margin:0.9 });
       });
-      outPanel.position.set(0, narrow ? 9.5 : 3.0, narrow ? -152 : -149);
-      outPanel.scale.setScalar(narrow ? 0.72 : 1);
+      AREASTOPS.projects = { pos:new THREE.Vector3(17, 2.3, -113.5), look:new THREE.Vector3(17, 2.8, -132) };
+      /* output sign at the core */
+      outPanel.position.set(0, 3.2, -149); outPanel.rotation.y = 0;
       registerAnim(outPanel, 0.04);
-      S.push(stopFor(outPanel, 10.5 * (narrow ? 0.72 : 1), 7.55 * (narrow ? 0.72 : 1), 1.0));
-      camStops = S;
+      var outIT = regIT(outPanel, "output", "Output \u00B7 Contact", "Click the email to write to Hamza", { action:"mailto", range:15, w:10.5, h:7.55, margin:1.0 });
+      AREASTOPS.core = outIT.stop;
+      OBST.push({ x:0, z:-160, r:15 });
+      buildOrbs();
     }
 
-    /* ---------- picking: slabs and output sign are clickable ---------- */
+    /* ================= free roam: movement, flight, proximity ================= */
     var raycaster = new THREE.Raycaster();
     var ndc = new THREE.Vector2();
     var hoverFace = null;
@@ -1393,45 +1588,230 @@ body.world-on .signal{pointer-events:auto}
       var hits = raycaster.intersectObjects(clickTargets, false);
       return hits.length ? hits[0] : null;
     }
-    var downX = 0, downY = 0, downT = 0;
-    window.addEventListener("pointerdown", function(e){ downX = e.clientX; downY = e.clientY; downT = performance.now(); }, { passive:true });
+    function spawnDist(){
+      var need = 9.4 / (Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * Math.max(camera.aspect, 0.3));
+      return Math.min(Math.max(17.5, need), 38);
+    }
+    function spawnZ(){ return -2 + spawnDist(); }
+    function spawnYaw(){ return Math.atan2(3.2, spawnZ() + 2); }
+    function spawnPitch(){ return Math.atan2(3.0 - 1.9, Math.hypot(3.2, spawnZ() + 2)); }
+    var roam = {
+      pos: new THREE.Vector3(0, 1.9, spawnZ()),
+      yaw: spawnYaw(), pitch: spawnPitch(),
+      vel: new THREE.Vector3(),
+      bobPhase: 0, speedFac: 0
+    };
+    var EYE = 1.9;
+    /* cinematic entry: darkness, an ignition wave, a glide into the plaza.
+       Any input skips it. Reduced motion never starts it. */
+    var entry = reduced ? null : { start: performance.now(), dur: 3800 };
+    var entryLight = new THREE.PointLight(EMBER, 0, 75, 1.8);
+    scene.add(entryLight);
+    function cancelEntry(){
+      if (!entry) return;
+      entry = null;
+      renderer.toneMappingExposure = 1.15;
+      entryLight.intensity = 0;
+      roam.pos.set(0, EYE, spawnZ());
+      roam.yaw = spawnYaw(); roam.pitch = spawnPitch();
+      roam.vel.set(0, 0, 0);
+    }
+    window.addEventListener("wheel", function(){ if (entry) cancelEntry(); }, { passive:true });
+    var fly = null;
+    function lookAngles(eye, look){
+      var d = new THREE.Vector3().subVectors(look, eye);
+      return { yaw: Math.atan2(-d.x, -d.z), pitch: Math.atan2(d.y, Math.hypot(d.x, d.z)) };
+    }
+    function flyTo(pos, look, dur){
+      var a = lookAngles(pos, look);
+      if (reduced || !dur){
+        roam.pos.copy(pos); roam.yaw = a.yaw; roam.pitch = a.pitch;
+        roam.vel.set(0, 0, 0); fly = null; return;
+      }
+      fly = { p0:roam.pos.clone(), p1:pos.clone(), y0:roam.yaw, y1:a.yaw,
+              pi0:roam.pitch, pi1:a.pitch, start:performance.now(), dur:dur * 1000 };
+      while (fly.y1 - fly.y0 > Math.PI) fly.y1 -= Math.PI * 2;
+      while (fly.y0 - fly.y1 > Math.PI) fly.y1 += Math.PI * 2;
+    }
+    function flyToIT(e){
+      var p = e.stop.pos.clone(); p.y = EYE;
+      flyTo(p, e.stop.look, 1.4);
+    }
+    flyHook = function(key){
+      if (entry) cancelEntry();
+      var s = AREASTOPS[key];
+      if (s){ var p = s.pos.clone(); p.y = EYE; flyTo(p, s.look, 1.6); }
+    };
+
+    var keys = {};
+    var hintDone = false;
+    function hintOff(){
+      if (hintDone) return;
+      hintDone = true;
+      hintEl.classList.add("gone");
+      setTimeout(function(){ hintEl.hidden = true; }, 900);
+    }
+    window.addEventListener("keydown", function(e){
+      if (!worldOn) return;
+      if (e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA")) return;
+      if (entry) cancelEntry();
+      keys[e.code] = true;
+      if (["ArrowUp","ArrowDown","ArrowLeft","ArrowRight","Space"].indexOf(e.code) >= 0) e.preventDefault();
+      if (fly && ["KeyW","KeyA","KeyS","KeyD","ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].indexOf(e.code) >= 0){ fly = null; hintOff(); }
+    });
+    window.addEventListener("keyup", function(e){ keys[e.code] = false; });
+    window.addEventListener("blur", function(){ keys = {}; });
+
+    /* drag to look, tap to act: both live on the canvas */
+    var drag = null;
+    canvas.addEventListener("pointerdown", function(e){
+      if (entry) cancelEntry();
+      drag = { lx:e.clientX, ly:e.clientY, t:performance.now(), moved:0 };
+    });
+    window.addEventListener("pointermove", function(e){
+      if (!drag) return;
+      var dx = e.clientX - drag.lx, dy = e.clientY - drag.ly;
+      drag.lx = e.clientX; drag.ly = e.clientY;
+      drag.moved += Math.abs(dx) + Math.abs(dy);
+      if (drag.moved > 4){
+        fly = null;
+        roam.yaw -= dx * 0.0031;
+        roam.pitch = clamp(roam.pitch - dy * 0.0031, -1.05, 1.05);
+        hintOff();
+      }
+    }, { passive:true });
     window.addEventListener("pointerup", function(e){
+      if (!drag) return;
+      var wasDrag = drag.moved > 7 || performance.now() - drag.t > 500;
+      drag = null;
+      if (wasDrag || e.target !== canvas) return;
+      handleTap(e.clientX, e.clientY);
+    });
+    function handleTap(cx, cy){
       if (!contentReady) return;
-      if (Math.hypot(e.clientX - downX, e.clientY - downY) > 6 || performance.now() - downT > 450) return;
-      if (e.target.closest && e.target.closest("a, button, #factCard, #topbar, #jmap")) return;
-      var hit = pickAt(e.clientX, e.clientY);
+      var hit = pickAt(cx, cy);
       if (!hit) return;
-      var face = hit.object;
-      if (face.userData.project && face.userData.project.link){
-        window.open(face.userData.project.link, "_blank", "noopener");
-      } else if (face.userData.output && hit.uv){
-        var cx = hit.uv.x * 1600, cy = (1 - hit.uv.y) * 1150;
-        for (var i = 0; i < OUTREGIONS.length; i++){
-          var R = OUTREGIONS[i];
-          if (cx >= R.x && cx <= R.x + R.w && cy >= R.y && cy <= R.y + R.h){
-            if (R.url.indexOf("mailto:") === 0) window.location.href = R.url;
-            else window.open(R.url, "_blank", "noopener");
-            break;
+      var obj = hit.object;
+      if (obj.userData.orb){
+        var grp = obj.userData.orb;
+        if (roam.pos.distanceTo(grp.position) <= 12) collectOrb(grp);
+        else flyTo(new THREE.Vector3(grp.position.x, EYE, grp.position.z + 7), grp.position.clone(), 1.3);
+        return;
+      }
+      var e2 = obj.userData.it;
+      if (!e2) return;
+      if (roam.pos.distanceTo(e2.group.position) <= e2.range + 3) activateIT(e2, hit);
+      else flyToIT(e2);
+    }
+    function activateIT(e2, hit){
+      if (e2.link){ window.open(e2.link, "_blank", "noopener"); return; }
+      if (e2.action === "mailto"){
+        if (hit && hit.uv){
+          var cx = hit.uv.x * 1600, cy = (1 - hit.uv.y) * 1150;
+          for (var i = 0; i < OUTREGIONS.length; i++){
+            var R = OUTREGIONS[i];
+            if (cx >= R.x && cx <= R.x + R.w && cy >= R.y && cy <= R.y + R.h){
+              if (R.url.indexOf("mailto:") === 0) window.location.href = R.url;
+              else window.open(R.url, "_blank", "noopener");
+              return;
+            }
           }
         }
+        window.location.href = "mailto:" + EMAIL;
       }
-    });
+    }
     var hoverTick = 0;
     window.addEventListener("mousemove", function(e){
-      if (!contentReady || reduced) return;
+      if (!contentReady || coarse) return;
       var now = performance.now();
       if (now - hoverTick < 70) return;
       hoverTick = now;
-      if (e.target.closest && e.target.closest("a, button, #factCard, #topbar, #jmap")){ hoverFace = null; document.body.style.cursor = ""; return; }
+      if (e.target !== canvas){ hoverFace = null; document.body.style.cursor = ""; return; }
       var hit = pickAt(e.clientX, e.clientY);
       hoverFace = hit ? hit.object : null;
-      var clickable = false;
-      if (hoverFace){
-        if (hoverFace.userData.project && hoverFace.userData.project.link) clickable = true;
-        if (hoverFace.userData.output) clickable = true;
-      }
-      document.body.style.cursor = clickable ? "pointer" : "";
+      document.body.style.cursor = hoverFace ? "pointer" : "";
     }, { passive:true });
+
+    /* virtual joystick (touch devices) */
+    var joyVec = { x:0, y:0 };
+    var joyEl = document.getElementById("joy");
+    var joyKnob = document.getElementById("joyKnob");
+    if (coarse) joyEl.classList.add("on");
+    var joyId = null;
+    function joySet(e){
+      var r = joyEl.getBoundingClientRect();
+      var dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2);
+      var len = Math.hypot(dx, dy), max = r.width / 2 - 8;
+      if (len > max){ dx *= max / len; dy *= max / len; }
+      joyKnob.style.transform = "translate(calc(-50% + " + dx.toFixed(1) + "px), calc(-50% + " + dy.toFixed(1) + "px))";
+      joyVec.x = dx / max; joyVec.y = dy / max;
+      if (Math.abs(joyVec.x) > 0.12 || Math.abs(joyVec.y) > 0.12){ fly = null; hintOff(); }
+    }
+    joyEl.addEventListener("pointerdown", function(e){ joyId = e.pointerId; try { joyEl.setPointerCapture(joyId); } catch(err){} joySet(e); e.preventDefault(); });
+    joyEl.addEventListener("pointermove", function(e){ if (e.pointerId === joyId) joySet(e); });
+    function joyEnd(e){
+      if (e.pointerId !== joyId) return;
+      joyId = null; joyVec.x = 0; joyVec.y = 0;
+      joyKnob.style.transform = "translate(-50%,-50%)";
+    }
+    joyEl.addEventListener("pointerup", joyEnd);
+    joyEl.addEventListener("pointercancel", joyEnd);
+
+    /* proximity: prompt, glow, area, one-time triggers */
+    var nearIT = null, nearOrb = null, proxTick = 0;
+    var txDone = false, surgeTarget = 0;
+    var coreRevealed = false, revealT = -99;
+    function updateProximity(now){
+      if (now - proxTick < 120) return;
+      proxTick = now;
+      var best = null, bestD = 1e9;
+      IT.forEach(function(e2){
+        var d = roam.pos.distanceTo(e2.group.position);
+        if (d < e2.range && d < bestD){ best = e2; bestD = d; }
+      });
+      var bo = null, boD = 1e9;
+      orbList.forEach(function(g2){
+        var d = roam.pos.distanceTo(g2.position);
+        if (d < 11 && d < boD){ bo = g2; boD = d; }
+      });
+      nearIT = best; nearOrb = bo;
+      IT.forEach(function(e2){ e2.group.userData.glowTarget = (e2 === best) ? 1 : 0; });
+      if (bo && !found[bo.userData.signal]){
+        promptName.textContent = "Signal \u00B7 Hidden";
+        promptSub.textContent = "Click to decode";
+        promptEl.hidden = false; promptEl.classList.add("show");
+        promptEl.dataset.mode = "orb";
+      } else if (best){
+        promptName.textContent = best.name;
+        promptSub.textContent = best.sub;
+        promptEl.hidden = false; promptEl.classList.add("show");
+        promptEl.dataset.mode = "it";
+      } else {
+        promptEl.classList.remove("show");
+        promptEl.dataset.mode = "";
+      }
+      var areaKey = "plaza", areaLabel = "PLAZA", aD = 1e9;
+      AREAS.forEach(function(A){
+        var d = Math.hypot(roam.pos.x - A.x, roam.pos.z - A.z);
+        if (d < aD){ aD = d; areaKey = A.key; areaLabel = A.label; }
+      });
+      if (areaKey !== currentArea) setAreaUI(areaKey, areaLabel);
+      if (!txDone && Math.hypot(roam.pos.x - 0, roam.pos.z + 149) < 30){
+        txDone = true;
+        if (outputTyper && !reduced) outputTyper();
+      }
+      surgeTarget = (areaKey === "core") ? 0.5 : 0;
+      if (!coreRevealed && Math.hypot(roam.pos.x, roam.pos.z + 152) < 34){
+        coreRevealed = true; revealT = 0; pulseT = 0;
+      }
+    }
+    promptEl.addEventListener("click", function(){
+      if (promptEl.dataset.mode === "orb" && nearOrb) collectOrb(nearOrb);
+      else if (promptEl.dataset.mode === "it" && nearIT) activateIT(nearIT, null);
+    });
+    promptEl.addEventListener("keydown", function(e){
+      if (e.key === "Enter" || e.key === " "){ e.preventDefault(); promptEl.click(); }
+    });
 
     var fontLoads = [
       document.fonts.load('800 100px Syne'), document.fonts.load('700 100px Syne'),
@@ -1454,109 +1834,139 @@ body.world-on .signal{pointer-events:auto}
       try { buildContent(); } catch(e){ /* world dressing still runs */ }
     });
 
-    /* ---- camera path: one fitted stop per content object ---- */
-    var lookTarget = new THREE.Vector3();
-    var camPosSmooth = null;
-
-    function moveStream(pts, dt){
+    /* ================= frame loop: movement + world life ================= */
+    function moveStream(pts, dt, boost){
       var arr = pts.geometry.attributes.position.array;
-      var sp = pts.userData.speed * dt * (1 + Math.min(2.6, Math.abs(scrollVelSmooth) * 0.0016));
+      var sp = pts.userData.speed * dt * (1 + boost);
       for (var i = 2; i < arr.length; i += 3){
         arr[i] += sp;
         if (arr[i] > 15) arr[i] = -168;
       }
       pts.geometry.attributes.position.needsUpdate = true;
     }
-
-    /* ---- zone arrival events ---- */
-    var fxState = { z1:-99, z2:-99, z3:-99, z5:-99 };
-    var coreSurge = 0, bank = 0;
+    var coreSurge = 0, pulseT = -99;
     var pulseMesh = new THREE.Mesh(
       new THREE.TorusGeometry(9, 0.16, 10, 80),
       new THREE.MeshBasicMaterial({ color:EMBER, transparent:true, opacity:0 })
     );
     pulseMesh.position.copy(core.position);
     scene.add(pulseMesh);
-    var pulseT = -99;
-    fxTrigger = function(zone){
-      if (zone === 1) fxState.z1 = 0;
-      if (zone === 2) fxState.z2 = 0;
-      if (zone === 3) fxState.z3 = 0;
-      if (zone === 5){ fxState.z5 = 0; pulseT = 0; coreSurge = 1; }
-    };
+
+    var fwdV = new THREE.Vector3(), rightV = new THREE.Vector3(), wishV = new THREE.Vector3();
+    function stepMovement(dt){
+      if (entry){
+        var ek = clamp((performance.now() - entry.start) / entry.dur, 0, 1);
+        if (ek >= 1){ cancelEntry(); return; }
+        var ee = ek < 0.5 ? 4 * ek * ek * ek : 1 - Math.pow(-2 * ek + 2, 3) / 2;
+        roam.pos.set(0, lerp(11.5, EYE, ee), lerp(37, spawnZ(), ee));
+        var lw = smooth(0.3, 0.95, ek);
+        var lookNow = new THREE.Vector3(lerp(0, -3.2, lw), lerp(3.2, 3.0, lw), lerp(-160, -2, lw));
+        var aa = lookAngles(roam.pos, lookNow);
+        roam.yaw = aa.yaw; roam.pitch = aa.pitch;
+        renderer.toneMappingExposure = lerp(0.05, 1.15, smooth(0.02, 0.7, ek));
+        entryLight.position.set(0, 5.5, lerp(26, -95, ek));
+        entryLight.intensity = Math.sin(ek * Math.PI) * 320;
+        return;
+      }
+      if (fly){
+        var k = clamp((performance.now() - fly.start) / fly.dur, 0, 1);
+        var e = k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+        roam.pos.lerpVectors(fly.p0, fly.p1, e);
+        roam.yaw = lerp(fly.y0, fly.y1, e);
+        roam.pitch = lerp(fly.pi0, fly.pi1, e);
+        if (k >= 1) fly = null;
+        roam.vel.set(0, 0, 0);
+        return;
+      }
+      fwdV.set(-Math.sin(roam.yaw), 0, -Math.cos(roam.yaw));
+      rightV.set(-fwdV.z, 0, fwdV.x);
+      var f = 0, s = 0;
+      if (keys.KeyW || keys.ArrowUp) f += 1;
+      if (keys.KeyS || keys.ArrowDown) f -= 1;
+      if (keys.KeyD || keys.ArrowRight) s += 1;
+      if (keys.KeyA || keys.ArrowLeft) s -= 1;
+      f += -joyVec.y; s += joyVec.x;
+      wishV.set(0, 0, 0);
+      if (f || s){
+        var len = Math.hypot(f, s);
+        if (len > 1){ f /= len; s /= len; }
+        wishV.addScaledVector(fwdV, f).addScaledVector(rightV, s);
+        hintOff();
+      }
+      var boost = (keys.ShiftLeft || keys.ShiftRight) ? 1.9 : 1;
+      wishV.multiplyScalar(7.2 * boost);
+      var blend = 1 - Math.exp(-7 * dt);
+      roam.vel.x += (wishV.x - roam.vel.x) * blend;
+      roam.vel.z += (wishV.z - roam.vel.z) * blend;
+      roam.pos.x += roam.vel.x * dt;
+      roam.pos.z += roam.vel.z * dt;
+      for (var i = 0; i < OBST.length; i++){
+        var O = OBST[i];
+        var dx = roam.pos.x - O.x, dz = roam.pos.z - O.z;
+        var d2 = dx * dx + dz * dz;
+        if (d2 < O.r * O.r && d2 > 0.0001){
+          var d = Math.sqrt(d2);
+          roam.pos.x = O.x + dx / d * O.r;
+          roam.pos.z = O.z + dz / d * O.r;
+        }
+      }
+      roam.pos.x = clamp(roam.pos.x, -36, 38);
+      roam.pos.z = clamp(roam.pos.z, -146, Math.max(19, spawnZ() + 2));
+      var sp = Math.hypot(roam.vel.x, roam.vel.z);
+      roam.speedFac += (clamp(sp / 7.2, 0, 1) - roam.speedFac) * Math.min(1, dt * 5);
+      roam.bobPhase += dt * (4 + sp * 1.1) * roam.speedFac;
+      roam.pos.y = EYE + (reduced ? 0 : Math.sin(roam.bobPhase) * 0.05 * roam.speedFac);
+    }
 
     var clock = new THREE.Clock();
+    var moveAcc = 0;
     var hidden = false;
     document.addEventListener("visibilitychange", function(){ hidden = document.hidden; });
 
     function frame(){
       requestAnimationFrame(frame);
       if (hidden) return;
-      var dt = Math.min(clock.getDelta(), 0.05);
+      var rawDt = clock.getDelta();
+      var dt = Math.min(rawDt, 0.05);
       var t = clock.elapsedTime;
-      scrollVelSmooth *= Math.exp(-2.6 * dt);
-
-      /* camera from scroll: interpolate between content stops */
-      if (reduced){
-        if (camStops.length){
-          var rs = camStops[clamp(Math.round(stopFloat), 0, camStops.length - 1)];
-          camera.position.copy(rs.pos);
-          lookTarget.copy(rs.look);
-        } else {
-          camera.position.set(0, 1.9, 13);
-          lookTarget.set(0, 2, -60);
-        }
-      } else if (camStops.length > 1){
-        smX += (mouseX - smX) * 0.045;
-        smY += (mouseY - smY) * 0.045;
-        var seg = clamp(Math.floor(stopFloat), 0, camStops.length - 2);
-        var lt = clamp(stopFloat - seg, 0, 1);
-        var ease = lt * lt * (3 - 2 * lt);
-        var A = camStops[seg], B = camStops[seg + 1];
-        var idleSway = Math.sin(t * 0.24) * 0.35;
-        camera.position.set(
-          lerp(A.pos.x, B.pos.x, ease) + smX * 1.4 + idleSway * 0.35,
-          lerp(A.pos.y, B.pos.y, ease) - smY * 0.8 + Math.sin(t * 0.4) * 0.12,
-          lerp(A.pos.z, B.pos.z, ease)
-        );
-        lookTarget.set(
-          lerp(A.look.x, B.look.x, ease) + smX * 2.2,
-          lerp(A.look.y, B.look.y, ease) - smY * 1.1,
-          lerp(A.look.z, B.look.z, ease)
-        );
-      } else {
-        camera.position.set(0, 1.9, 13);
-        lookTarget.set(0, 2, -60);
+      moveAcc = Math.min(moveAcc + rawDt, 1.2);
+      var moveSteps = 0;
+      while (moveAcc >= 1 / 120 && moveSteps < 150){
+        stepMovement(1 / 120);
+        moveAcc -= 1 / 120;
+        moveSteps++;
       }
-      camera.lookAt(lookTarget);
-      if (!reduced){
-        var bankTarget = clamp(-scrollVelSmooth * 0.000011, -0.03, 0.03);
-        bank += (bankTarget - bank) * 0.055;
-        camera.rotateZ(bank);
-      }
-      camZLive = camera.position.z;
-      roCam.textContent = "DEPTH " + Math.abs(camZLive).toFixed(1).padStart(5, "0");
+      if (moveSteps >= 150) moveAcc = 0;
+      camera.position.copy(roam.pos);
+      camera.rotation.order = "YXZ";
+      camera.rotation.set(roam.pitch, roam.yaw, 0);
+      updateProximity(performance.now());
 
       if (!reduced){
-        /* advance zone arrival events */
-        ["z1","z2","z3","z5"].forEach(function(k){ if (fxState[k] >= 0) fxState[k] += dt; });
         if (pulseT >= 0) pulseT += dt;
-        var surgeTarget = (Math.round(globalT) === 5) ? 0.45 : 0;
-        if (coreSurge > surgeTarget) coreSurge = Math.max(surgeTarget, coreSurge - dt * 0.35);
+        if (revealT >= 0){
+          revealT += dt;
+          if (revealT > 0.55 && pulseT < 0) pulseT = 0;
+          if (revealT > 1.1 && pulseT < 0) pulseT = 0;
+          if (revealT > 4) revealT = -99;
+        }
+        var revealBoost = revealT >= 0 ? Math.max(0, 1 - revealT / 3.2) : 0;
+        core.scale.setScalar(1 + revealBoost * 0.13);
+        if (coreSurge < surgeTarget) coreSurge = Math.min(surgeTarget, coreSurge + dt * 0.5);
+        if (coreSurge > surgeTarget) coreSurge = Math.max(surgeTarget, coreSurge - dt * 0.3);
+        if (surgeTarget > 0 && pulseT < 0 && coreSurge > 0.3) pulseT = 0;
 
-        /* the world never stops */
         core.rotation.y += dt * 0.16;
         coreShell.rotation.x += dt * 0.11;
         coreShell.rotation.z += dt * 0.07;
         var pulse = (1 + Math.sin(t * 1.35) * 0.055) * (1 + coreSurge * 0.1);
         coreBall.scale.set(pulse, pulse, pulse);
-        coreLight.intensity = (250 + Math.sin(t * 1.35) * 55) * (1 + coreSurge * 1.15);
+        coreLight.intensity = (250 + Math.sin(t * 1.35) * 55) * (1 + coreSurge * 1.15 + revealBoost * 1.7);
         coreGlow.material.opacity = 0.58 + Math.sin(t * 1.35) * 0.1;
         coreRings.forEach(function(ring, i){
-          ring.rotation.z += dt * (0.1 + i * 0.05) * (1 + coreSurge * 2.2);
+          ring.rotation.z += dt * (0.1 + i * 0.05) * (1 + coreSurge * 2.2 + revealBoost * 2.6);
           ring.rotation.x += dt * 0.05 * (i + 1);
         });
-        /* zone 5 arrival: light pulse travels outward from the core */
         if (pulseT >= 0 && pulseT < 2.2){
           var pk = pulseT / 2.2;
           pulseMesh.scale.setScalar(1 + pk * 5.2);
@@ -1564,54 +1974,37 @@ body.world-on .signal{pointer-events:auto}
           pulseMesh.rotation.z += dt * 0.4;
         } else {
           pulseMesh.material.opacity = 0;
-        }
-        /* zone 1 arrival: pillar caps light up in sequence along the path */
-        if (fxState.z1 >= 0){
-          var hold1 = fxState.z1 < 4.6 ? 1 : Math.max(0.3, 1 - (fxState.z1 - 4.6) / 2.2);
-          caps.forEach(function(cm, i){
-            var lit = clamp(fxState.z1 * 1.25 - i * 0.05, 0, 1) * hold1;
-            cm.opacity = 0.75 + 0.25 * lit;
-            cm.color.setHex(lit > 0.6 ? 0xffc38f : 0xff5c1a);
-          });
+          if (pulseT >= 2.2) pulseT = -99;
         }
         gates.forEach(function(gate, i){
           gate.rotation.z += dt * 0.12 * (i % 2 === 0 ? 1 : -1);
-          /* zone 2 arrival: first three gates flare open in sequence */
-          if (fxState.z2 >= 0 && i <= 2){
-            var lg = clamp((fxState.z2 - i * 0.45) / 0.9, 0, 1);
-            var gs = 1 + Math.sin(lg * Math.PI) * 0.13;
-            gate.userData.outer.scale.set(gs, gs, 1);
-            gate.userData.outer.material.opacity = 0.85 + 0.15 * lg;
-            gate.rotation.z += dt * lg * 1.6 * (i % 2 === 0 ? 1 : -1);
-          }
         });
-        /* zone 3 arrival: skill floaters brighten and assemble into formation */
-        var k3 = fxState.z3 < 0 ? 0 : clamp(fxState.z3 / 2.4, 0, 1);
-        var e3 = k3 * k3 * (3 - 2 * k3);
-        floaterMat.emissiveIntensity = 0.06 + 0.4 * e3;
         floaters.forEach(function(m){
           m.rotation.x += dt * m.userData.spin;
           m.rotation.y += dt * m.userData.spin * 0.8;
-          if (m.userData.alignPos){
-            m.position.x = lerp(m.userData.origPos.x, m.userData.alignPos.x, e3);
-            m.position.z = lerp(m.userData.origPos.z, m.userData.alignPos.z, e3);
-            m.position.y = lerp(m.userData.origPos.y, m.userData.alignPos.y, e3)
-              + Math.sin(t * 0.5 + m.userData.bobPhase) * 0.45 * (1 - e3);
-          } else {
-            m.position.y = m.userData.baseY + Math.sin(t * 0.5 + m.userData.bobPhase) * 0.45;
-          }
+          m.position.y = m.userData.baseY + Math.sin(t * 0.5 + m.userData.bobPhase) * 0.45;
         });
-        moveStream(streamA, dt);
-        moveStream(streamB, dt);
+        moveStream(streamA, dt, roam.speedFac * 1.6);
+        moveStream(streamB, dt, roam.speedFac * 1.6);
         dust.rotation.y = Math.sin(t * 0.02) * 0.03;
         dust.position.y = Math.sin(t * 0.16) * 0.35;
         grid.position.z = (t * 1.2) % 4;
-        /* content objects: gentle float, edge breathing, hover lift */
         animPanels.forEach(function(g){
           g.position.y = g.userData.baseY + Math.sin(t * 0.55 + g.userData.phase) * g.userData.amp;
+          var em = g.userData.edgeMat;
+          if (em){
+            var cur = g.userData.glow || 0;
+            cur += ((g.userData.glowTarget || 0) - cur) * 0.12;
+            g.userData.glow = cur;
+            em.opacity = 0.40 + Math.sin(t * 1.1 + g.userData.phase) * 0.10 + cur * 0.42;
+          }
         });
-        pulseEdges.forEach(function(m, i){
-          m.opacity = 0.42 + Math.sin(t * 1.1 + i * 1.3) * 0.13;
+        orbList.forEach(function(g2){
+          var u = g2.userData;
+          u.ring.rotation.x += dt * 0.7;
+          u.ring.rotation.y += dt * 0.5;
+          g2.position.y = u.by + Math.sin(t * 0.8 + u.phase) * 0.3;
+          if (!found[u.signal]) u.ball.scale.setScalar(1 + Math.sin(t * 2.2 + u.phase) * 0.12);
         });
         slabList.forEach(function(g){
           var target = (hoverFace && g.userData.face === hoverFace) ? 1.03 : 1;
@@ -1627,154 +2020,68 @@ body.world-on .signal{pointer-events:auto}
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);
-      computeAnchors();
       layoutContent();
     });
+
+    /* Blender environment: replaces the code dressing when it loads */
+    window.__blenderOn = false;
+    try {
+      new GLTFLoader().load("world.glb", function(gltf){
+        var envScene = gltf.scene;
+        envScene.traverse(function(o){
+          if (o.isMesh){ o.castShadow = !isMobile; o.receiveShadow = true; }
+        });
+        scene.add(envScene);
+        dressing.visible = false;
+        window.__blenderOn = true;
+      }, undefined, function(){ /* GLB failed: code dressing stays */ });
+    } catch(e){ /* GLB failed: code dressing stays */ }
+
+    /* test and debug hook */
+    window.__roam = {
+      getState: function(){
+        return { x:roam.pos.x, y:roam.pos.y, z:roam.pos.z, yaw:roam.yaw, pitch:roam.pitch,
+                 area:currentArea, prompt:promptEl.hidden ? "" : promptName.textContent,
+                 signals:foundCount, blender:window.__blenderOn === true, entry:!!entry };
+      },
+      flyToArea: function(k){ var s = AREASTOPS[k]; if (s){ var p = s.pos.clone(); p.y = EYE; flyTo(p, s.look, 1.2); } },
+      skipEntry: function(){ cancelEntry(); },
+      entryK: function(){ return entry ? Math.min(1, (performance.now() - entry.start) / entry.dur) : 1; },
+      flyToObject: function(key){
+        for (var i = 0; i < IT.length; i++) if (IT[i].key === key){ flyToIT(IT[i]); return true; }
+        for (var j = 0; j < orbList.length; j++){
+          if ("signal" + orbList[j].userData.signal === key){
+            var g2 = orbList[j];
+            flyTo(new THREE.Vector3(g2.position.x, EYE, g2.position.z + 7), g2.position.clone(), 1.2);
+            return true;
+          }
+        }
+        return false;
+      },
+      look: function(yaw, pitch){ roam.yaw = yaw; roam.pitch = pitch; }
+    };
+
     frame();
     return true;
   }
 
-  /* ================= exploration: travel, signals, transmission ================= */
-  function zoneTargetY(i){
-    var vh = window.innerHeight;
-    var maxScroll = Math.max(0, document.documentElement.scrollHeight - vh);
-    if (i <= 0) return 0;
-    var top = zones[i].offsetTop, h = zones[i].offsetHeight;
-    var frac = (i === 4) ? 0.5 / 6 : 0.34;
-    return clamp(top + h * frac - vh * 0.5, 0, maxScroll);
-  }
-  var travelAnim = null;
-  function travelTo(i){
-    i = clamp(i, 0, zones.length - 1);
-    var target = zoneTargetY(i);
-    if (reduced){ travelAnim = null; window.scrollTo(0, target); return; }
-    travelAnim = { from: window.scrollY || 0, to: target, start: performance.now(), dur: 1200 };
-    requestAnimationFrame(travelStep);
-  }
-  function travelStep(now){
-    if (!travelAnim) return;
-    var k = clamp((now - travelAnim.start) / travelAnim.dur, 0, 1);
-    var e = k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
-    window.scrollTo(0, travelAnim.from + (travelAnim.to - travelAnim.from) * e);
-    if (k < 1) requestAnimationFrame(travelStep); else travelAnim = null;
-  }
-  window.addEventListener("wheel", function(){ travelAnim = null; }, { passive:true });
-  window.addEventListener("touchstart", function(){ travelAnim = null; }, { passive:true });
-  Array.prototype.forEach.call(document.querySelectorAll("#topbar nav a, #topbar .mark"), function(a){
-    a.addEventListener("click", function(e){
-      var m = (a.getAttribute("href") || "").match(/z(\d)/);
-      if (m){ e.preventDefault(); travelTo(parseInt(m[1], 10)); }
-    });
-  });
-  document.addEventListener("keydown", function(e){
-    var cur = lastZone < 0 ? 0 : lastZone;
-    if (e.key === "ArrowDown"){ e.preventDefault(); travelTo(Math.min(zones.length - 1, cur + 1)); }
-    if (e.key === "ArrowUp"){ e.preventDefault(); travelTo(Math.max(0, cur - 1)); }
-  });
-
-  /* journey map */
-  var jdots = Array.prototype.slice.call(document.querySelectorAll(".jdot"));
-  jdots.forEach(function(d){
-    d.addEventListener("click", function(){ travelTo(parseInt(d.getAttribute("data-zone"), 10)); });
-  });
-  function updateMap(zi){
-    jdots.forEach(function(d, i){
-      d.classList.toggle("done", i <= maxReached && i !== zi);
-      d.classList.toggle("now", i === zi);
-    });
-  }
-
-  /* projects fly-in on zone entry */
-  function flyProjects(){
-    if (reduced || worldOn) return;
-    Array.prototype.forEach.call(document.querySelectorAll(".proj"), function(c, i){
-      c.classList.remove("flyL", "flyR");
-      void c.offsetWidth;
-      c.style.animationDelay = (i * 0.1).toFixed(2) + "s";
-      c.classList.add(i % 2 ? "flyR" : "flyL");
-    });
-  }
-
-  /* zone 5 transmission reveal */
-  var txTimers = [], txInterval = null, txArmed = true;
-  function runTransmission(){
-    if (outputTyper){ if (!reduced) outputTyper(); return; }
-    if (reduced) return;
-    var email = document.querySelector(".email-big");
-    if (!email) return;
-    txTimers.forEach(clearTimeout); txTimers = [];
-    if (txInterval){ clearInterval(txInterval); txInterval = null; }
-    var full = email.getAttribute("data-full") || email.textContent.trim();
-    email.setAttribute("data-full", full);
-    var links = document.querySelectorAll(".socials a");
-    Array.prototype.forEach.call(links, function(a){
-      a.classList.add("tx-prep");
-      a.style.opacity = "0"; a.style.transform = "translateY(10px)";
-    });
-    email.textContent = "";
-    var startT = performance.now(), totalMs = 520;
-    txInterval = setInterval(function(){
-      var k = Math.min(1, (performance.now() - startT) / totalMs);
-      email.textContent = full.slice(0, Math.ceil(k * full.length));
-      if (k >= 1){
-        clearInterval(txInterval); txInterval = null;
-        Array.prototype.forEach.call(links, function(a, i){
-          txTimers.push(setTimeout(function(){
-            a.style.opacity = "1"; a.style.transform = "translateY(0)";
-          }, i * 110));
-        });
-      }
-    }, 30);
-  }
-
-  /* discoverable signals */
-  var FACTS = [
-    "Dean's List, twice, during BS Computer Science.",
-    "Teaches 130 plus lab students every semester.",
-    "Nascon Code War winner, ACM Hackathon runner-up.",
-    "Runs a daily AI shorts channel, The Daily Commit.",
-    "ICPC Regionals: ranked 19th and 38th in Pakistan."
-  ];
-  var found = {}, foundCount = 0;
-  var factCard = document.getElementById("factCard");
-  var fcText = document.getElementById("fcText");
-  var fcTitle = document.getElementById("fcTitle");
-  var fcCount = document.getElementById("fcCount");
-  var roSignals = document.getElementById("roSignals");
-  function closeFact(){ factOpen = false; factCard.hidden = true; }
-  document.getElementById("fcClose").addEventListener("click", closeFact);
-  Array.prototype.forEach.call(document.querySelectorAll(".signal"), function(orb){
-    orb.addEventListener("click", function(){
-      var idx = parseInt(orb.getAttribute("data-fact"), 10);
-      fcTitle.textContent = "Signal 0" + (idx + 1) + " · Decoded";
-      fcText.textContent = FACTS[idx];
-      if (!found[idx]){ found[idx] = true; foundCount++; orb.classList.add("found"); }
-      roSignals.textContent = foundCount;
-      fcCount.textContent = "Signals " + foundCount + " / 5";
-      factScrollY = window.scrollY || 0;
-      factCard.hidden = false;
-      factOpen = true;
-    });
-  });
-
-  function onZoneChange(zi){
-    updateMap(zi);
-    if (fxTrigger) fxTrigger(zi);
-    if (zi === 4) flyProjects();
-    if (zi === 5 && txArmed){ txArmed = false; runTransmission(); }
-    if (zi !== 5) txArmed = true;
-  }
 
   var worldOk = false;
   try { worldOk = initWorld(); } catch(e){ worldOk = false; }
   worldOn = worldOk;
-  if (worldOk) document.body.classList.add("world-on");
-  if (!worldOk){
+  if (worldOk){
+    document.body.classList.add("world-on");
+    hintEl.hidden = false;
+    hintEl.innerHTML = coarse
+      ? "<b>Left stick</b> to move \u00B7 <b>Drag</b> to look around \u00B7 <b>Tap</b> a place to fly to it"
+      : "<b>WASD</b> to move \u00B7 <b>Drag</b> to look around \u00B7 <b>Click</b> a place to fly to it \u00B7 <b>Shift</b> faster";
+  } else {
     roStatus.textContent = "STATIC MODE";
     document.getElementById("gl").style.display = "none";
+    window.addEventListener("scroll", function(){
+      if (factOpen && (window.scrollY || 0) > 40) closeFact();
+    }, { passive:true });
   }
-  computeAnchors();
-  measure();
 })();
 </script>
 </body>
